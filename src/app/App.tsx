@@ -25,13 +25,7 @@ function AppContent() {
         {currentTab === 'dashboard' && <OverviewDashboard onNavigateTab={(tab) => setCurrentTab(tab)} />}
         {currentTab === 'police' && <PoliceCommandView />}
         {currentTab === 'traffic' && <TrafficMonitorView />}
-        {currentTab === 'incidents' && (
-          <IncidentMonitorView
-            onOpenDispatchModalWithIncident={() => {
-              setCurrentTab('police');
-            }}
-          />
-        )}
+        {currentTab === 'incidents' && <IncidentMonitorView />}
         {currentTab === 'risk' && <RiskIntelligenceView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
       </main>

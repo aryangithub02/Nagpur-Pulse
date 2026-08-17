@@ -51,6 +51,7 @@ export const UnifiedMap: React.FC<{
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
   const tomtomTileLayerRef = useRef<L.TileLayer | null>(null);
+  const prevRouteKeyRef = useRef<string>('');
 
   const {
     units,
@@ -293,8 +294,8 @@ export const UnifiedMap: React.FC<{
             risk.riskLevel === 'CRITICAL' || risk.riskLevel === 'SEVERE'
               ? '#ef4444'
               : risk.riskLevel === 'HIGH'
-              ? '#f97316'
-              : '#eab308';
+                ? '#f97316'
+                : '#eab308';
 
           L.circleMarker([j.latitude, j.longitude], {
             radius: 22,
@@ -319,18 +320,19 @@ export const UnifiedMap: React.FC<{
         const speed = metrics ? metrics.currentSpeed : 30;
         const level = metrics?.congestionLevel || 'fluid';
 
-        let pinColor = '#ff2a85';
-        let speedBadgeClass = 'bg-[#12141d]/95 text-pink-300 border-pink-500/50';
+        // Junction Pin Color Scheme matching user reference specification
+        let pinColor = '#22C55E'; // Low Risk (#22C55E Green)
+        let speedBadgeClass = 'bg-[#12141d]/95 text-emerald-300 border-emerald-500/50';
 
         if (level === 'moderate') {
-          pinColor = '#f59e0b';
+          pinColor = '#FACC15'; // Moderate Risk (#FACC15 Yellow)
           speedBadgeClass = 'bg-[#12141d]/95 text-amber-300 border-amber-500/50';
         } else if (level === 'heavy') {
-          pinColor = '#ea580c';
+          pinColor = '#F97316'; // High Risk (#F97316 Orange)
           speedBadgeClass = 'bg-[#12141d]/95 text-orange-300 border-orange-500/50';
         } else if (level === 'gridlock') {
-          pinColor = '#e11d48';
-          speedBadgeClass = 'bg-[#12141d]/95 text-rose-300 border-rose-500/50';
+          pinColor = '#EF4444'; // Critical Risk (#EF4444 Red)
+          speedBadgeClass = 'bg-[#12141d]/95 text-red-300 border-red-500/50';
         }
 
         // Show label pill ONLY on hover or if explicitly set to 'all'
@@ -346,11 +348,10 @@ export const UnifiedMap: React.FC<{
         const iconHtml = `
           <div class="custom-traffic-pin group flex flex-col items-center select-none cursor-pointer" style="transform: translate(-50%, -100%);">
             <!-- Label Pill (Displays ONLY on Mouse Hover or if labelMode === 'all') -->
-            <div class="transition-all duration-200 mb-1 pointer-events-none z-20 ${
-              showLabelAlways
-                ? 'opacity-100 scale-100'
-                : 'opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'
-            }">
+            <div class="transition-all duration-200 mb-1 pointer-events-none z-20 ${showLabelAlways
+            ? 'opacity-100 scale-100'
+            : 'opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'
+          }">
               <div class="px-2.5 py-1 rounded-lg border text-[11px] font-bold font-mono shadow-2xl backdrop-blur-xl flex items-center gap-1.5 whitespace-nowrap ${speedBadgeClass}">
                 <span>${junction.name}</span>
                 <span class="px-1.5 py-0.5 rounded bg-black/50 text-[10px]">${speed} km/h</span>
@@ -358,9 +359,8 @@ export const UnifiedMap: React.FC<{
             </div>
 
             <!-- Teardrop Pin Marker SVG (Clean sharp lines without glow) -->
-            <div class="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-125 ${
-              isSelected ? 'scale-125' : ''
-            }">
+            <div class="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-125 ${isSelected ? 'scale-125' : ''
+          }">
               <svg width="28" height="36" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12C1.5 19.8 12 30.5 12 30.5C12 30.5 22.5 19.8 22.5 12C22.5 6.2 17.8 1.5 12 1.5Z" fill="${pinColor}" fill-opacity="0.25" stroke="${pinColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="12" cy="11.5" r="4" fill="${pinColor}" stroke="#ffffff" stroke-width="1.5"/>
@@ -391,20 +391,13 @@ export const UnifiedMap: React.FC<{
       });
     }
 
-    // Incidents Pins Layer
+    // Incidents Pins Layer (#8B5CF6 Purple)
     if (layers.incidents) {
       incidents.forEach((inc) => {
+        const color = '#8B5CF6'; // Incident (#8B5CF6 Purple)
         const isClosed = inc.category === 'Road Closed';
         const isRoadWorks = inc.category === 'Roadworks';
         const isCrash = inc.category === 'Accident';
-
-        const color = isClosed
-          ? '#a855f7' // Purple
-          : isRoadWorks
-          ? '#facc15' // Yellow
-          : isCrash
-          ? '#3b82f6' // Blue
-          : '#f97316'; // Orange
 
         const iconSymbol = isClosed ? '🚫' : isRoadWorks ? '🚧' : isCrash ? '💥' : '⚠️';
 
@@ -453,23 +446,23 @@ export const UnifiedMap: React.FC<{
         weight: 5,
         opacity: 0.9,
         dashArray: '8, 8',
+        interactive: false,
       }).addTo(layerGroup);
 
-      mapRef.current?.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      const routeKey = `${activeRoutePolyline[0][0]},${activeRoutePolyline[0][1]}-${activeRoutePolyline[activeRoutePolyline.length - 1][0]},${activeRoutePolyline[activeRoutePolyline.length - 1][1]}`;
+      if (prevRouteKeyRef.current !== routeKey) {
+        prevRouteKeyRef.current = routeKey;
+        mapRef.current?.fitBounds(polyline.getBounds(), { padding: [50, 50], maxZoom: 15 });
+      }
+    } else {
+      prevRouteKeyRef.current = '';
     }
 
-    // Police Fleet Units Layer
+    // Police Fleet Units Layer (#3B82F6 Blue)
     if (layers.policeUnits) {
       units.forEach((unit) => {
         const isSelected = selectedUnit?.id === unit.id;
-        const statusColor =
-          unit.availability === 'EN_ROUTE'
-            ? '#38bdf8'
-            : unit.availability === 'ON_SCENE'
-            ? '#ef4444'
-            : unit.availability === 'AVAILABLE'
-            ? '#10b981'
-            : '#64748b';
+        const statusColor = '#3B82F6'; // Police Active (#3B82F6 Blue)
 
         const unitIcon = L.divIcon({
           className: 'custom-police-unit-pin',
@@ -488,9 +481,8 @@ export const UnifiedMap: React.FC<{
             transition: all 0.2s ease;
           ">
             <span style="font-size: 16px;">🚓</span>
-            ${
-              unit.telemetry.isSirenActive
-                ? `<div style="
+            ${unit.telemetry.isSirenActive
+              ? `<div style="
               position: absolute;
               top: -4px;
               right: -4px;
@@ -500,7 +492,7 @@ export const UnifiedMap: React.FC<{
               background: #ef4444;
               box-shadow: 0 0 10px #ef4444;
             "></div>`
-                : ''
+              : ''
             }
           </div>`,
           iconSize: [32, 32],
@@ -562,11 +554,10 @@ export const UnifiedMap: React.FC<{
           {/* Interconnecting Routes Toggle */}
           <button
             onClick={() => setShowNetworkRoutes(!showNetworkRoutes)}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold transition-all shadow-lg flex items-center gap-1.5 ${
-              showNetworkRoutes
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold transition-all shadow-lg flex items-center gap-1.5 ${showNetworkRoutes
                 ? 'bg-pink-950/80 text-pink-300 border-pink-500/60 shadow-pink-500/10'
                 : 'bg-[#12141d]/90 text-slate-400 border-slate-700/80 hover:text-slate-200'
-            }`}
+              }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Interconnecting Routes {showNetworkRoutes ? 'ON' : 'OFF'}</span>
@@ -665,30 +656,20 @@ export const UnifiedMap: React.FC<{
       {/* ----------------------------------------------------------------------- */}
       {/* ON CLICK: JUNCTION TELEMETRY INSPECTOR CARD (Matching Screenshot 2) */}
       {/* ----------------------------------------------------------------------- */}
+      {/* ----------------------------------------------------------------------- */}
+      {/* SIMPLE JUNCTION TELEMETRY INFO CARD */}
+      {/* ----------------------------------------------------------------------- */}
       {selectedJunction && (
-        <div className="absolute top-28 left-4 z-30 w-80 bg-[#0c0e17]/95 backdrop-blur-xl border border-pink-500/40 rounded-2xl p-4 shadow-2xl text-slate-100 font-sans animate-in fade-in zoom-in-95 duration-150">
-          {/* Header Badges & Close Button */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase bg-pink-950/80 text-pink-300 border border-pink-500/40 tracking-wider">
-                {selectedJunction.zone || 'CENTRAL ZONE'}
+        <div className="absolute top-24 left-4 z-30 w-72 bg-[#0c0e17]/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-2xl text-slate-100 font-sans animate-in fade-in zoom-in-95 duration-150">
+          {/* Header & Close Button */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                {selectedJunction.zone || 'Nagpur Zone'}
               </span>
-              <span
-                className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 border ${
-                  selectedState?.metrics?.congestionLevel === 'fluid'
-                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
-                    : selectedState?.metrics?.congestionLevel === 'moderate'
-                    ? 'bg-amber-950/80 text-amber-300 border-amber-500/40'
-                    : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                {selectedState?.metrics?.congestionLevel === 'fluid'
-                  ? 'Fluid Traffic'
-                  : selectedState?.metrics?.congestionLevel === 'moderate'
-                  ? 'Moderate Traffic'
-                  : 'Congested'}
-              </span>
+              <h3 className="font-extrabold text-base text-slate-100 tracking-tight mt-1">
+                {selectedJunction.name}
+              </h3>
             </div>
 
             <button
@@ -699,71 +680,48 @@ export const UnifiedMap: React.FC<{
             </button>
           </div>
 
-          {/* Junction Title & Road Name */}
-          <h3 className="font-extrabold text-base text-slate-100 tracking-tight">
-            {selectedJunction.name}
-          </h3>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
-            {selectedJunction.source || `${selectedJunction.name} Arterial`}
-          </p>
-
-          {/* Metrics Overview Boxes */}
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            {/* Live Speed */}
-            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col">
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                <Gauge className="w-3.5 h-3.5 text-pink-400" />
-                <span>Live Speed</span>
+          {/* Simple Metrics Row */}
+          <div className="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center font-mono">
+            <div>
+              <div className="text-[10px] text-slate-400">Speed</div>
+              <div className="text-sm font-black text-emerald-400 mt-0.5">
+                {selectedState?.metrics?.currentSpeed || 35} <span className="text-[10px] font-normal text-slate-500">km/h</span>
               </div>
-              <div className="my-1 flex items-baseline gap-1">
-                <span className="text-2xl font-black font-mono text-pink-300">
-                  {selectedState?.metrics?.currentSpeed || 35}
-                </span>
-                <span className="text-xs font-mono text-slate-400">km/h</span>
-              </div>
-              <span className="text-[10px] font-mono text-slate-500">
-                Free-Flow: {selectedState?.metrics?.freeFlowSpeed || 50} km/h
-              </span>
             </div>
 
-            {/* Traffic Delay */}
-            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col">
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span>Traffic Delay</span>
+            <div>
+              <div className="text-[10px] text-slate-400">Status</div>
+              <div className="text-xs font-bold mt-1 capitalize text-amber-300">
+                {selectedState?.metrics?.congestionLevel || 'Fluid'}
               </div>
-              <div className="my-1 flex items-baseline gap-1">
-                <span className="text-2xl font-black font-mono text-amber-300">
-                  +{Math.round((selectedState?.metrics?.delaySeconds || 0) / 60)}
-                </span>
-                <span className="text-xs font-mono text-slate-400">min</span>
+            </div>
+
+            <div>
+              <div className="text-[10px] text-slate-400">Delay</div>
+              <div className="text-sm font-black text-rose-400 mt-0.5">
+                +{Math.round((selectedState?.metrics?.delaySeconds || 0) / 60)}m
               </div>
-              <span className="text-[10px] font-mono text-slate-500">
-                Travel: {Math.round((selectedState?.metrics?.currentTravelTime || 60) / 60)}m
-              </span>
             </div>
           </div>
 
-          {/* Coordinates Bar with Copy */}
-          <div className="flex items-center justify-between mt-3 px-3 py-1.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs font-mono text-slate-400">
-            <span>
-              {selectedJunction.latitude.toFixed(5)}, {selectedJunction.longitude.toFixed(5)}
-            </span>
+          {/* Simple Action Buttons */}
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => {
-                navigator.clipboard.writeText(`${selectedJunction.latitude}, ${selectedJunction.longitude}`);
-                setCopiedCoord(true);
-                setTimeout(() => setCopiedCoord(false), 2000);
+                dispatchUnit(
+                  units[0]?.id || 'unit-pcr-101',
+                  selectedJunction.id,
+                  selectedJunction.name,
+                  'Traffic Patrol',
+                  'HIGH'
+                );
               }}
-              className="flex items-center gap-1 text-pink-400 hover:text-pink-300 font-semibold font-sans transition"
+              className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md"
             >
-              {copiedCoord ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              {copiedCoord ? 'Copied' : 'Copy'}
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Route Unit</span>
             </button>
-          </div>
 
-          {/* Action Dispatch & Prediction Buttons */}
-          <div className="grid grid-cols-2 gap-2 mt-3.5">
             <button
               onClick={async () => {
                 setPredictResult({ text: 'Computing...', isLoading: true });
@@ -771,54 +729,22 @@ export const UnifiedMap: React.FC<{
                 const res = await requestPredictionForJunction(selectedJunction.id, curSpeed, 80);
                 if (res) {
                   setPredictResult({
-                    text: `Risk Prediction: ${res.prediction} (${Math.round((res.probability || 0.85) * 100)}% Conf) — Saved to DB`,
+                    text: `Risk: ${res.prediction} (${Math.round((res.probability || 0.85) * 100)}%)`,
                     isLoading: false,
                   });
                 } else {
-                  setPredictResult({ text: 'Prediction request completed and logged in DB', isLoading: false });
+                  setPredictResult({ text: 'Prediction completed', isLoading: false });
                 }
               }}
-              className="col-span-2 px-3 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/90 text-purple-200 border border-purple-500/50 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-lg"
+              className="px-3 py-2 rounded-xl bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md"
             >
               <Cpu className="w-3.5 h-3.5 text-purple-400" />
-              <span>Run Risk Prediction</span>
-            </button>
-
-            <button
-              onClick={() => {
-                dispatchUnit(
-                  units[0]?.id || 'unit-pcr-101',
-                  selectedJunction.id,
-                  selectedJunction.name,
-                  'Traffic Patrol',
-                  'HIGH'
-                );
-              }}
-              className="px-3 py-2 rounded-xl bg-pink-950/70 hover:bg-pink-900/80 text-pink-300 border border-pink-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-lg"
-            >
-              <Zap className="w-3.5 h-3.5 text-pink-400" />
-              Route From
-            </button>
-            <button
-              onClick={() => {
-                dispatchUnit(
-                  units[0]?.id || 'unit-pcr-101',
-                  selectedJunction.id,
-                  selectedJunction.name,
-                  'Traffic Patrol',
-                  'HIGH'
-                );
-              }}
-              className="px-3 py-2 rounded-xl bg-sky-950/70 hover:bg-sky-900/80 text-sky-300 border border-sky-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-lg"
-            >
-              <Navigation className="w-3.5 h-3.5 text-sky-400" />
-              Route To
+              <span>Predict</span>
             </button>
           </div>
 
           {predictResult && (
-            <div className="mt-2.5 p-2 rounded-xl bg-purple-950/90 border border-purple-500/40 text-[11px] font-mono text-purple-200 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping shrink-0"></span>
+            <div className="mt-2.5 p-2 rounded-xl bg-purple-950/90 border border-purple-500/40 text-[11px] font-mono text-purple-200 flex items-center justify-between">
               <span>{predictResult.text}</span>
             </div>
           )}
@@ -840,16 +766,22 @@ export const UnifiedMap: React.FC<{
 
           <div className="flex items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-3 h-1 rounded bg-[#ff2a85]"></span> Fluid (&gt;35 km/h)
+              <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]"></span> Low
             </span>
             <span className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-3 h-1 rounded bg-amber-500"></span> Moderate
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]"></span> Moderate
             </span>
             <span className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-3 h-1 rounded bg-rose-600"></span> Congested
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span> High
             </span>
             <span className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-3 h-1 border-t-2 border-dashed border-sky-400"></span> Ring Road
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span> Critical
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span> Incident
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span> Police Active
             </span>
           </div>
         </div>
@@ -858,31 +790,28 @@ export const UnifiedMap: React.FC<{
         <div className="px-2 py-1.5 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-800 text-xs font-mono pointer-events-auto flex items-center gap-1.5 shadow-xl">
           <button
             onClick={() => setMapLayer('dark')}
-            className={`px-3 py-1 rounded-lg font-semibold transition ${
-              mapLayer === 'dark'
+            className={`px-3 py-1 rounded-lg font-semibold transition ${mapLayer === 'dark'
                 ? 'bg-slate-800 text-white border border-slate-700 shadow'
                 : 'text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             Dark Vector
           </button>
           <button
             onClick={() => setMapLayer('satellite')}
-            className={`px-3 py-1 rounded-lg font-semibold transition ${
-              mapLayer === 'satellite'
+            className={`px-3 py-1 rounded-lg font-semibold transition ${mapLayer === 'satellite'
                 ? 'bg-pink-600 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             Satellite
           </button>
           <button
             onClick={() => setShowTomTomFlowRaster(!showTomTomFlowRaster)}
-            className={`px-3 py-1 rounded-lg font-semibold transition ${
-              showTomTomFlowRaster
+            className={`px-3 py-1 rounded-lg font-semibold transition ${showTomTomFlowRaster
                 ? 'bg-emerald-600 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             Flow Raster {showTomTomFlowRaster ? 'ON' : 'OFF'}
           </button>
