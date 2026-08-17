@@ -121,28 +121,34 @@ export const UnifiedMap: React.FC<{
       });
     }
 
-    // 3. Traffic Layer (Junction Speed Circles & Traffic status)
+    // 3. Traffic Layer (Hot Pink Spot Pins matching Screenshot 1)
     if (layers.traffic) {
       junctionStates.forEach(({ junction, metrics }) => {
-        const speed = metrics?.currentSpeed || 35;
-        const color =
-          speed < 20 ? '#ef4444' : speed < 35 ? '#f59e0b' : '#10b981';
+        const speed = metrics?.currentSpeed || 27;
+        const shortName = junction.name;
 
         const customIcon = L.divIcon({
           className: 'custom-traffic-pin',
           html: `<div style="
-            background: ${color};
+            background: #ff2a85;
             color: #ffffff;
             font-size: 10px;
             font-weight: 700;
-            padding: 3px 6px;
+            font-family: monospace;
+            padding: 2px 7px;
             border-radius: 9999px;
-            border: 2px solid #0f172a;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+            border: 1.5px solid #0d0e12;
+            box-shadow: 0 0 10px rgba(255, 42, 133, 0.7);
             white-space: nowrap;
-          ">${speed} km/h</div>`,
-          iconSize: [42, 22],
-          iconAnchor: [21, 11],
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span>${shortName}</span>
+            <span style="background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 4px; color: #ffe4e6;">${speed} km/h</span>
+          </div>`,
+          iconSize: [120, 24],
+          iconAnchor: [60, 12],
         });
 
         const marker = L.marker([junction.latitude, junction.longitude], { icon: customIcon });
@@ -154,32 +160,43 @@ export const UnifiedMap: React.FC<{
       });
     }
 
-    // 4. Incident Markers Layer
+    // 4. Incident Markers Layer (Matching Screenshot 2 Icons & Colors)
     if (layers.incidents) {
       incidents.forEach((inc) => {
-        const isCritical = inc.severity === 'Critical';
-        const color = isCritical ? '#ef4444' : inc.severity === 'Heavy' ? '#f97316' : '#eab308';
+        const isClosed = inc.category === 'Road Closed' || inc.category === 'Road Closure';
+        const isRoadWorks = inc.category === 'Road Works' || inc.category === 'Roadwork';
+        const isCrash = inc.category === 'Accident' || inc.category === 'Crash';
+
+        const color = isClosed
+          ? '#a855f7' // Purple
+          : isRoadWorks
+          ? '#facc15' // Yellow
+          : isCrash
+          ? '#3b82f6' // Blue
+          : '#f97316'; // Orange Jam
+
+        const iconSymbol = isClosed ? '🚫' : isRoadWorks ? '🚧' : isCrash ? '🚗' : '⚠️';
 
         const iconHtml = `<div style="
-          width: 28px;
-          height: 28px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           background: ${color};
           border: 2px solid #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 15px ${color};
+          box-shadow: 0 0 16px ${color};
           animation: pulse 1.5s infinite;
         ">
-          <span style="font-size: 14px;">⚠️</span>
+          <span style="font-size: 14px;">${iconSymbol}</span>
         </div>`;
 
         const icon = L.divIcon({
           className: 'custom-incident-pin',
           html: iconHtml,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
         });
 
         const marker = L.marker(inc.location, { icon });
@@ -270,7 +287,7 @@ export const UnifiedMap: React.FC<{
   }, [layers, units, selectedUnit, incidents, junctionStates, riskData, activeRoutePolyline]);
 
   return (
-    <div className={`relative w-full ${heightClass} rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950`}>
+    <div className={`relative w-full ${heightClass} rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-[#0b0c10]`}>
       {/* Canvas Container */}
       <div ref={containerRef} className="w-full h-full z-0" />
 
@@ -278,37 +295,37 @@ export const UnifiedMap: React.FC<{
       <div className="absolute top-4 right-4 z-20">
         <button
           onClick={() => setIsControlsOpen(!isControlsOpen)}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-xl border border-slate-700/80 shadow-lg backdrop-blur-md transition-all text-xs font-mono font-medium"
+          className="flex items-center gap-2 px-3 py-2 bg-[#12141d]/90 hover:bg-slate-800 text-slate-200 rounded-xl border border-slate-700/80 shadow-lg backdrop-blur-md transition-all text-xs font-mono font-medium"
         >
-          <Layers className="w-4 h-4 text-blue-400" />
+          <Layers className="w-4 h-4 text-pink-400" />
           <span>Layers ({Object.values(layers).filter(Boolean).length})</span>
         </button>
 
         {isControlsOpen && (
-          <div className="mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-xl p-3 shadow-2xl flex flex-col gap-2 text-xs font-mono">
+          <div className="mt-2 w-56 bg-[#12141d]/95 backdrop-blur-xl border border-slate-700/80 rounded-xl p-3 shadow-2xl flex flex-col gap-2 text-xs font-mono">
             <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-1">Toggle Map Overlays</div>
             
             <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
               <span className="flex items-center gap-2 text-slate-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Live Traffic
+                <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span> Live Spot Pins
               </span>
               <input
                 type="checkbox"
                 checked={layers.traffic}
                 onChange={(e) => setLayers({ ...layers, traffic: e.target.checked })}
-                className="accent-blue-500"
+                className="accent-pink-500"
               />
             </label>
 
             <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
               <span className="flex items-center gap-2 text-slate-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Incidents & Accidents
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> GIS Incident Layers
               </span>
               <input
                 type="checkbox"
                 checked={layers.incidents}
                 onChange={(e) => setLayers({ ...layers, incidents: e.target.checked })}
-                className="accent-blue-500"
+                className="accent-purple-500"
               />
             </label>
 
@@ -320,7 +337,7 @@ export const UnifiedMap: React.FC<{
                 type="checkbox"
                 checked={layers.policeUnits}
                 onChange={(e) => setLayers({ ...layers, policeUnits: e.target.checked })}
-                className="accent-blue-500"
+                className="accent-sky-500"
               />
             </label>
 
@@ -332,51 +349,11 @@ export const UnifiedMap: React.FC<{
                 type="checkbox"
                 checked={layers.risk}
                 onChange={(e) => setLayers({ ...layers, risk: e.target.checked })}
-                className="accent-blue-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
-              <span className="flex items-center gap-2 text-slate-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Coverage Radius
-              </span>
-              <input
-                type="checkbox"
-                checked={layers.coverage}
-                onChange={(e) => setLayers({ ...layers, coverage: e.target.checked })}
-                className="accent-blue-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
-              <span className="flex items-center gap-2 text-slate-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-300"></span> Dispatch Polyline
-              </span>
-              <input
-                type="checkbox"
-                checked={layers.route}
-                onChange={(e) => setLayers({ ...layers, route: e.target.checked })}
-                className="accent-blue-500"
+                className="accent-amber-500"
               />
             </label>
           </div>
         )}
-      </div>
-
-      {/* Floating Tactical Legend */}
-      <div className="absolute bottom-4 left-4 z-20 hidden md:flex items-center gap-4 px-3.5 py-2 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 text-[11px] font-mono text-slate-300 shadow-xl">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Low Congestion
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Moderate
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Heavy / Accident
-        </span>
-        <span className="flex items-center gap-1.5 text-sky-400">
-          🚓 Police Fleet ({units.length})
-        </span>
       </div>
     </div>
   );
