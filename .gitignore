@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Node / JS
+node_modules/
+dist/
+.output/
+
 # C extensions
 *.so
 
@@ -10,7 +15,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -32,6 +36,10 @@ ENV/
 env/
 env.bak/
 venv.bak/
+
+# Database Files
+*.db
+backend/*.db
 
 # Environment Variables
 backend/.env

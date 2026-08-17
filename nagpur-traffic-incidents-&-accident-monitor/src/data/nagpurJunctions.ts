@@ -1,0 +1,47 @@
+import { NagpurJunction } from '../types';
+
+export const NAGPUR_JUNCTIONS: NagpurJunction[] = [
+  { id: 1, name: "LIC Chowk", latitude: 21.1556187, longitude: 79.0817574, approximate: false, source: "Nominatim: LIC Square", zone: 'Central' },
+  { id: 2, name: "Lokmat Chowk", latitude: 21.1354806, longitude: 79.0780286, approximate: false, source: "Public map search result for Lokmat Square", zone: 'Central' },
+  { id: 3, name: "Gaddi Godam Chowk", latitude: 21.1616305, longitude: 79.0837250, approximate: false, source: "Nominatim: Gaddi Godam Square", zone: 'North' },
+  { id: 4, name: "Kadbi Chowk", latitude: 21.1548700, longitude: 79.0813900, approximate: true, source: "Public map reference near Kasturchand Park / Kadvi Chowk", zone: 'North' },
+  { id: 5, name: "Golibar Chowk", latitude: 21.1614000, longitude: 79.1059000, approximate: true, source: "Approximate locality/junction coordinate", zone: 'East' },
+  { id: 6, name: "Indora Chowk", latitude: 21.1736873, longitude: 79.1007283, approximate: false, source: "Nominatim: Indora Square", zone: 'North' },
+  { id: 7, name: "Mental Hospital Chowk", latitude: 21.1755960, longitude: 79.0785247, approximate: false, source: "Nominatim: Pagal Khana Square / Regional Mental Hospital", zone: 'North' },
+  { id: 8, name: "Vaishnodevi Chowk", latitude: 21.1480272, longitude: 79.1364057, approximate: false, source: "Nominatim: Vaishnodevi Square", zone: 'East' },
+  { id: 9, name: "Bardi Chowk", latitude: 21.1466000, longitude: 79.0855000, approximate: true, source: "Approximate Bardi/Sitabuldi area coordinate", zone: 'Central' },
+  { id: 10, name: "Kasturchand Park Square", latitude: 21.1550000, longitude: 79.0813900, approximate: false, source: "Public reference: Kasturchand Park metro station", zone: 'Central' },
+  { id: 11, name: "Airport T-Point", latitude: 21.1030000, longitude: 79.0840000, approximate: true, source: "Approximate airport-road T-point coordinate", zone: 'South' },
+  { id: 12, name: "Automotive Square", latitude: 21.1857923, longitude: 79.1195065, approximate: false, source: "Nominatim: Automotive Square", zone: 'North' },
+  { id: 13, name: "Laxmi Nagar Square", latitude: 21.1254686, longitude: 79.0639778, approximate: false, source: "Nominatim: Laxmi Nagar Square", zone: 'West' },
+  { id: 14, name: "Shraddhanand Peth Square", latitude: 21.1254292, longitude: 79.0593904, approximate: true, source: "OSM address reference for Shraddhanand Peth Square", zone: 'West' },
+  { id: 15, name: "Shankar Nagar Square", latitude: 21.1362125, longitude: 79.0616442, approximate: false, source: "Nominatim: Shankar Nagar Square", zone: 'West' },
+  { id: 16, name: "Ajit Bakery Square", latitude: 21.1290000, longitude: 79.0640000, approximate: true, source: "Approximate local junction coordinate", zone: 'West' },
+  { id: 17, name: "Abhyankar Nagar Square", latitude: 21.1270000, longitude: 79.0610000, approximate: true, source: "Approximate Abhyankar Nagar junction coordinate", zone: 'West' },
+  { id: 18, name: "Alankar Square", latitude: 21.1285000, longitude: 79.0565000, approximate: true, source: "Approximate local junction coordinate", zone: 'West' },
+  { id: 19, name: "LAD Square", latitude: 21.1310000, longitude: 79.0515000, approximate: true, source: "Approximate local junction coordinate", zone: 'West' },
+  { id: 20, name: "Kachipura Square", latitude: 21.1335000, longitude: 79.0670000, approximate: true, source: "Approximate local junction coordinate", zone: 'West' },
+  { id: 21, name: "Itwari Chowk", latitude: 21.1569338, longitude: 79.1102582, approximate: false, source: "OSM named place", zone: 'East' },
+  { id: 22, name: "Sitabuldi Chowk", latitude: 21.1415725, longitude: 79.0828592, approximate: true, source: "OSM Sitabuldi area / metro station reference", zone: 'Central' },
+  { id: 23, name: "RBI Chowk", latitude: 21.1526445, longitude: 79.0809738, approximate: false, source: "Nominatim: RBI Square", zone: 'Central' },
+  { id: 24, name: "Medical Chowk", latitude: 21.1314524, longitude: 79.0977219, approximate: false, source: "OSM Medical Square", zone: 'South' },
+  { id: 25, name: "Cotton Market Chowk", latitude: 21.1459896, longitude: 79.0897729, approximate: false, source: "OSM Cotton Market", zone: 'Central' },
+  { id: 26, name: "Mankapur Chowk", latitude: 21.1878071, longitude: 79.0790929, approximate: false, source: "Nominatim: Mankapur Square", zone: 'North' },
+  { id: 27, name: "Katol Road Chowk", latitude: 21.1695203, longitude: 79.0257646, approximate: true, source: "Map search result for Katol Road junction area", zone: 'North' },
+  { id: 28, name: "Mate Chowk", latitude: 21.1216256, longitude: 79.0564783, approximate: false, source: "OSM named square", zone: 'West' },
+  { id: 29, name: "Pardi Chowk", latitude: 21.1450232, longitude: 79.1682830, approximate: true, source: "OSM Pardi area reference", zone: 'East' },
+  { id: 30, name: "Kamptee Chowk", latitude: 21.1888687, longitude: 79.1238271, approximate: true, source: "OSM Kamptee Road reference", zone: 'North' },
+  { id: 31, name: "Hingna Chowk", latitude: 21.1233698, longitude: 79.0436319, approximate: false, source: "OSM Hingna T-Point", zone: 'West' },
+  { id: 32, name: "Manewada Chowk", latitude: 21.1051881, longitude: 79.1024825, approximate: false, source: "Nominatim: Manewada Square", zone: 'South' },
+  { id: 33, name: "Pratap Nagar Chowk", latitude: 21.1137148, longitude: 79.0567838, approximate: false, source: "OSM named square", zone: 'West' },
+  { id: 34, name: "Ajni Chowk", latitude: 21.1182122, longitude: 79.0721071, approximate: false, source: "OSM Ajni Square", zone: 'South' },
+  { id: 35, name: "Chatrapati Chowk", latitude: 21.1091390, longitude: 79.0696114, approximate: true, source: "Nominatim: Chhatrapati Square", zone: 'South' },
+  { id: 36, name: "Dighori Chowk", latitude: 21.1018000, longitude: 79.1310000, approximate: true, source: "Approximate locality/junction coordinate", zone: 'East' },
+  { id: 37, name: "Variety Square", latitude: 21.1434953, longitude: 79.0809881, approximate: false, source: "Nominatim: Variety Square", zone: 'Central' },
+  { id: 38, name: "Jhansi Rani Square", latitude: 21.1411618, longitude: 79.0801886, approximate: false, source: "OSM named square", zone: 'Central' },
+  { id: 39, name: "Sakkardara Square", latitude: 21.1218473, longitude: 79.1152792, approximate: true, source: "OSM Sakkardara area reference", zone: 'East' },
+  { id: 40, name: "Manish Nagar–Besa Junction", latitude: 21.0849744, longitude: 79.0955504, approximate: true, source: "OSM Besa Square / Manish Nagar-Besa area reference", zone: 'South' }
+];
+
+export const NAGPUR_CENTER: [number, number] = [21.1458, 79.0882]; // Zero Mile / Central Nagpur
+export const NAGPUR_BBOX = "78.90,20.99,79.20,21.25"; // [minLon, minLat, maxLon, maxLat]

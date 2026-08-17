@@ -1,0 +1,6 @@
+{
+  "name": "Nagpur Traffic Monitor",
+  "description": "Real-time traffic speed, traffic flow, and travel time analytics for Nagpur junctions using TomTom Traffic Flow API.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

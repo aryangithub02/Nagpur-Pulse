@@ -1,0 +1,6 @@
+{
+  "name": "Nagpur Traffic Incidents & Accident Monitor",
+  "description": "Live traffic incident and accident intelligence dashboard for Nagpur city tracking real-time location, severity, incident type, delay, and junction hotspots.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
