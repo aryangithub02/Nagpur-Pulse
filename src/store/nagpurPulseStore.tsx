@@ -11,6 +11,7 @@ import { fetchCoverage } from '../services/api/coverage';
 import { calculateUnitRoute } from '../services/api/routing';
 import { moveTowardsTarget, findNearestJunction, calculateBearingDegrees } from '../utils/geoUtils';
 import { soundFX } from '../utils/audioEffects';
+import { batchFetchJunctionTraffic, fetchTomTomIncidents, calculateTomTomRoute } from '../services/tomtomService';
 
 // Initial realistic Nagpur Police Fleet
 const INITIAL_FLEET: PoliceUnit[] = [
@@ -325,7 +326,7 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
     },
   ]);
 
-  // Load backend datasets
+  // Load backend datasets & TomTom Live API
   const loadBackendData = useCallback(async () => {
     // 1. Police Units
     const pRes = await fetchPoliceUnits();
@@ -338,10 +339,38 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
       }));
     }
 
-    // 2. Incidents
-    const iRes = await fetchIncidents();
+    // 2. TomTom Live Traffic Flow for Junctions
+    try {
+      const tomTomMetricsMap = await batchFetchJunctionTraffic(NAGPUR_JUNCTIONS);
+      if (tomTomMetricsMap.size > 0) {
+        setJunctionStates((prev) =>
+          prev.map((item) => {
+            const liveMetrics = tomTomMetricsMap.get(item.junction.id);
+            if (liveMetrics) {
+              return {
+                ...item,
+                metrics: liveMetrics,
+                isLoading: false,
+                error: null,
+              };
+            }
+            return item;
+          })
+        );
+      }
+    } catch (err) {
+      console.warn('TomTom batch traffic fetch fallback:', err);
+    }
+
+    // 3. Incidents (Backend + Live TomTom Incidents)
+    const [iRes, tomTomIncidents] = await Promise.all([
+      fetchIncidents(),
+      fetchTomTomIncidents(),
+    ]);
+
+    let parsedIncidents: IncidentItem[] = [];
     if (!iRes.error && iRes.incidents.length > 0) {
-      const parsed: IncidentItem[] = iRes.incidents.map((b) => {
+      parsedIncidents = iRes.incidents.map((b) => {
         const j = NAGPUR_JUNCTIONS.find((loc) => String(loc.id) === b.locationId) || NAGPUR_JUNCTIONS[0];
         return {
           id: b.id,
@@ -367,45 +396,51 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
           isSimulated: b.isSimulated,
         };
       });
-      setIncidents(parsed);
     }
 
-    // 3. Traffic Observations
+    const combinedIncidents = [...parsedIncidents, ...tomTomIncidents];
+    if (combinedIncidents.length > 0) {
+      setIncidents(combinedIncidents);
+    }
+
+    // 4. Fallback Traffic Observations from Backend if TomTom metric is missing
     const tRes = await fetchTrafficObservations();
     if (!tRes.error && tRes.traffic.length > 0) {
       setJunctionStates((prev) =>
         prev.map((item) => {
-          const matched = tRes.traffic.find((tr) => tr.locationId === String(item.junction.id));
-          if (matched) {
-            return {
-              ...item,
-              metrics: {
-                currentSpeed: matched.speed || 35,
-                freeFlowSpeed: 50,
-                currentTravelTime: 200,
-                freeFlowTravelTime: 100,
-                delaySeconds: Math.max(0, 200 - 100),
-                congestionLevel: matched.congestionLevel.toLowerCase() as any,
-                confidenceScore: 0.95,
-                roadClosure: false,
-                frc: 'FRC2',
-                streetName: item.junction.name,
-                updatedAt: matched.timestamp,
-              },
-            };
+          if (!item.metrics) {
+            const matched = tRes.traffic.find((tr) => tr.locationId === String(item.junction.id));
+            if (matched) {
+              return {
+                ...item,
+                metrics: {
+                  currentSpeed: matched.speed || 35,
+                  freeFlowSpeed: 50,
+                  currentTravelTime: 200,
+                  freeFlowTravelTime: 100,
+                  delaySeconds: Math.max(0, 200 - 100),
+                  congestionLevel: matched.congestionLevel.toLowerCase() as any,
+                  confidenceScore: 0.95,
+                  roadClosure: false,
+                  frc: 'FRC2',
+                  streetName: item.junction.name,
+                  updatedAt: matched.timestamp,
+                },
+              };
+            }
           }
           return item;
         })
       );
     }
 
-    // 4. Risk Predictions
+    // 5. Risk Predictions
     const rRes = await fetchAllRiskPredictions();
     if (!rRes.error) {
       setRiskData(rRes.riskData);
     }
 
-    // 5. Coverage
+    // 6. Coverage
     const cRes = await fetchCoverage();
     if (!cRes.error) {
       setCoverageData(cRes);

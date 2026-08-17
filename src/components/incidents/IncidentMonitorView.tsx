@@ -146,8 +146,8 @@ export const IncidentMonitorView: React.FC<{ onOpenDispatchModalWithIncident?: (
           <div className="space-y-3 overflow-y-auto max-h-[500px] pr-1">
             {filteredIncidents.map((inc) => {
               const isSelected = selectedIncident?.id === inc.id;
-              const isClosed = inc.category === 'Road Closed' || inc.category === 'Road Closure';
-              const isRoadWorks = inc.category === 'Road Works' || inc.category === 'Roadwork';
+              const isClosed = inc.category === 'Road Closed';
+              const isRoadWorks = inc.category === 'Roadworks';
               
               // Border and Badge Color Palette matching Screenshot 2
               const borderClass = isClosed
@@ -199,7 +199,7 @@ export const IncidentMonitorView: React.FC<{ onOpenDispatchModalWithIncident?: (
                   <div className="mt-3.5 flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs">
                     <div className="flex items-center gap-1.5 text-amber-400 text-[11px] truncate max-w-[220px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                      <span>Near {inc.nearestJunctionName || inc.roadName} (~{inc.delayMinutes} km)</span>
+                      <span>Near {inc.nearestJunction?.name || inc.roadName} (~{inc.delayMinutes} km)</span>
                     </div>
 
                     <button
