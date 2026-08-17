@@ -1,0 +1,6 @@
+{
+  "name": "Nagpur Police Unit Command & Dispatch",
+  "description": "Real-time tactical tracking, availability monitoring, and incident dispatch for police units across Nagpur junctions and key squares.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
