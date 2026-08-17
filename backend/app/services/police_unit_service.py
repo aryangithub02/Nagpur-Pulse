@@ -5,19 +5,40 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.police_unit import PoliceUnit
+from app.adapters.schemas.police import CanonicalPoliceUnitState
+from app.adapters.police.simulated import SimulatedPoliceAdapter
+from app.adapters.health import provider_health_service
 from app.exceptions import UnitNotFoundException, UnitUnavailableException, DatabaseOperationException
 
 logger = logging.getLogger("police_unit_service")
 
 
 class PoliceUnitService:
-    """Service managing police unit queries, status transitions, and availability checks."""
+    """
+    Service managing police unit queries, status transitions, and availability checks.
+    Supports both ORM models and provider-independent CanonicalPoliceUnitState objects.
+    """
+
+    def __init__(self):
+        self.adapter = SimulatedPoliceAdapter()
+
+    def get_canonical_units(self, db: Session, zone_code: Optional[str] = None) -> List[CanonicalPoliceUnitState]:
+        """
+        Retrieve all police units normalized into CanonicalPoliceUnitState list.
+        """
+        units = self.get_units(db, zone_code=zone_code)
+        canonical = self.adapter.normalize_units(units)
+        provider_health_service.record_success("police", self.adapter.provider_name, 0.5)
+        return canonical
 
     @staticmethod
-    def get_units(db: Session) -> List[PoliceUnit]:
-        """Retrieve all police response units."""
+    def get_units(db: Session, zone_code: Optional[str] = None) -> List[PoliceUnit]:
+        """Retrieve all police response units, optionally filtered by zone_code if attribute exists."""
         try:
-            return db.query(PoliceUnit).order_by(PoliceUnit.id.asc()).all()
+            query = db.query(PoliceUnit)
+            if zone_code and zone_code != "ALL" and hasattr(PoliceUnit, "zone_code"):
+                query = query.filter(getattr(PoliceUnit, "zone_code") == zone_code)
+            return query.order_by(PoliceUnit.id.asc()).all()
         except SQLAlchemyError as e:
             logger.error(f"Error fetching police units: {str(e)}")
             raise DatabaseOperationException("Unable to retrieve police units list.")

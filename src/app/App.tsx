@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { AuthProvider } from '../store/authContext';
+import { AuthProvider, useAuth } from '../store/authContext';
 import { NagpurPulseStoreProvider, useNagpurPulseStore } from '../store/nagpurPulseStore';
 import { Navbar } from '../components/common/Navbar';
-import { LoginModal } from '../components/common/LoginModal';
+import { LoginModal } from '../components/auth/LoginModal';
 import { OverviewDashboard } from '../components/dashboard/OverviewDashboard';
 import { PoliceCommandView } from '../components/police/PoliceCommandView';
 import { TrafficMonitorView } from '../components/traffic/TrafficMonitorView';
 import { IncidentMonitorView } from '../components/incidents/IncidentMonitorView';
 import { RiskIntelligenceView } from '../components/risk/RiskIntelligenceView';
 import { PoliceCoverageView } from '../components/coverage/PoliceCoverageView';
-import { IncidentItem } from '../types/incident';
+import { WeatherImpactHeatmapView } from '../components/weather/WeatherImpactHeatmapView';
+import { UserManagementView } from '../components/admin/UserManagementView';
+import { AuditLogsView } from '../components/admin/AuditLogsView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const { isLoginModalOpen, setIsLoginModalOpen } = useAuth();
   const { apiSyncState } = useNagpurPulseStore();
 
   return (
@@ -27,7 +30,10 @@ function AppContent() {
         {currentTab === 'traffic' && <TrafficMonitorView />}
         {currentTab === 'incidents' && <IncidentMonitorView />}
         {currentTab === 'risk' && <RiskIntelligenceView />}
+        {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
+        {currentTab === 'users' && <UserManagementView />}
+        {currentTab === 'audit' && <AuditLogsView />}
       </main>
 
       {/* Terminal Command Center Footer */}
@@ -45,8 +51,8 @@ function AppContent() {
         </div>
       </footer>
 
-      {/* User Login & Role Switcher Modal */}
-      <LoginModal />
+      {/* Root Centered Login Modal over Blurred App */}
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 }

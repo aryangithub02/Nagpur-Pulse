@@ -17,7 +17,7 @@ from app.exceptions import (
     DatabaseOperationException,
 )
 
-# Existing routers
+# Core routers
 from app.routes.health import router as health_router
 from app.routes.predict import router as predict_router
 from app.routes.junctions import router as junctions_router
@@ -34,10 +34,22 @@ from app.routes.api.risk import router as api_risk_router
 from app.routes.api.recommendations import router as api_recommendations_router
 from app.routes.api.deployments import router as api_deployments_router
 from app.routes.api.simulation import router as api_simulation_router
+from app.routes.api.weather import router as api_weather_router
+from app.routes.api.resource_allocation import router as api_resource_allocation_router, fast_router as api_fast_allocation_router
 
+# Phase 5 Auth & Admin routers
+from app.routes.auth import router as auth_router
+from app.routes.admin import router as admin_router
+from app.routes.api.simulations import router as api_simulations_v1_router
+from app.routes.api.decisions import router as api_decisions_router
+from app.routes.api.system import router as api_system_router
+from app.bootstrap_admins import bootstrap_zones_and_admins
+
+# Load environment variables
 load_dotenv()
+load_dotenv(".env")
 
-# Set up backend logging
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -47,103 +59,91 @@ logger.info("Initializing Nagpur Pulse Backend API Service...")
 
 app = FastAPI(
     title="Nagpur Pulse Backend API",
-    description="FastAPI REST API for Nagpur Pulse traffic risk monitoring, police dispatch, and ML analytics",
-    version="1.0.0"
+    description="FastAPI REST API with Argon2id RBAC/ZBAC for Nagpur Pulse traffic risk monitoring, police dispatch, and ML analytics",
+    version="1.1.0"
 )
 
-# ----------------------------------------------------
-# Global & Domain Exception Handlers
-# ----------------------------------------------------
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def startup_initialize():
+    """Backend service startup initialization: Seed 5 zones & initial admin accounts."""
+    logger.info("Verifying operational zones & Argon2id hashed admin accounts...")
+    try:
+        bootstrap_zones_and_admins()
+    except Exception as err:
+        logger.warning(f"Bootstrap warning: {err}")
+    logger.info("Nagpur Pulse Backend API ready and listening for authenticated telemetry & ML requests.")
+
+# Exception Handlers
 @app.exception_handler(LocationNotFoundException)
 @app.exception_handler(UnitNotFoundException)
 @app.exception_handler(RecommendationNotFoundException)
 async def not_found_domain_exception_handler(request: Request, exc: Exception):
-    """Handle domain-level 404 Not Found exceptions."""
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": str(exc)}
     )
 
-
 @app.exception_handler(UnitUnavailableException)
 async def unit_unavailable_exception_handler(request: Request, exc: UnitUnavailableException):
-    """Handle domain-level 400 Bad Request unit availability exceptions."""
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": str(exc)}
     )
 
-
 @app.exception_handler(RoutingUnavailableException)
 @app.exception_handler(DatabaseOperationException)
 async def service_error_domain_exception_handler(request: Request, exc: Exception):
-    """Handle domain-level 500 Service Error exceptions."""
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": str(exc)}
     )
 
-
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """Handle standard HTTP exceptions with uniform detail message."""
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}
     )
 
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handle request validation errors safely (HTTP 422)."""
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": "Request validation failed", "errors": exc.errors()}
     )
 
-
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
-    """Handle database errors safely without leaking internal SQL queries or credentials."""
     logger.error(f"Database error on {request.method} {request.url.path}: {str(exc)}")
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Database service error encountered. Please try again."}
     )
 
-
 @app.exception_handler(Exception)
 async def uncaught_exception_handler(request: Request, exc: Exception):
-    """Global catch-all for uncaught server exceptions."""
     logger.error(f"Uncaught exception on {request.method} {request.url.path}: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "An internal server error occurred."}
     )
 
-
-# ----------------------------------------------------
-# CORS Middleware Configuration
-# ----------------------------------------------------
-frontend_url = os.getenv("FRONTEND_URL", "")
-cors_origins_env = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,*"
-)
-raw_origins = f"{frontend_url},{cors_origins_env}"
-origins = list({origin.strip() for origin in raw_origins.split(",") if origin.strip()})
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins if origins else ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ----------------------------------------------------
 # Router Mounts
-# ----------------------------------------------------
 app.include_router(health_router)
 app.include_router(junctions_router)
 app.include_router(observations_router)
@@ -160,3 +160,13 @@ app.include_router(api_risk_router)
 app.include_router(api_recommendations_router)
 app.include_router(api_deployments_router)
 app.include_router(api_simulation_router)
+app.include_router(api_weather_router)
+app.include_router(api_resource_allocation_router, prefix="/api/v1")
+app.include_router(api_fast_allocation_router, prefix="/api/v1")
+app.include_router(api_simulations_v1_router, prefix="/api/v1")
+app.include_router(api_decisions_router, prefix="/api/v1")
+app.include_router(api_system_router, prefix="/api/v1")
+
+# Register Phase 5 Auth & Admin Routers
+app.include_router(auth_router)
+app.include_router(admin_router)

@@ -1,0 +1,253 @@
+import logging
+from typing import Optional, List
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.user import User, UserRole
+from app.models.zone import Zone, ZoneCode
+from app.models.audit_log import AuditLog
+from app.routes.auth import get_current_user
+from app.services.auth_service import hash_password, validate_password_policy, create_audit_entry
+
+logger = logging.getLogger("admin_router")
+router = APIRouter(prefix="/api/v1/admin", tags=["Administration"])
+
+# Helper: Require System Admin Role
+def require_system_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != UserRole.SYSTEM_ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access Denied: SYSTEM_ADMIN privileges required for this administrative operation.",
+        )
+    return current_user
+
+# Pydantic Schemas
+class CreateUserRequest(BaseModel):
+    username: str = Field(..., min_length=3, example="officer_sharma")
+    password: str = Field(..., min_length=12, example="Sharma@2026Pulse!")
+    role: str = Field(..., example="FIELD_OFFICER")
+    zone_code: str = Field(..., example="CENTRAL")
+
+class UpdateUserRequest(BaseModel):
+    role: Optional[str] = None
+    zone_code: Optional[str] = None
+    is_active: Optional[bool] = None
+    is_locked: Optional[bool] = None
+
+class AdminResetPasswordRequest(BaseModel):
+    temporary_password: str = Field(..., min_length=12)
+
+# 1. GET /admin/users
+@router.get("/users")
+def list_users(
+    zone_code: Optional[str] = Query(None),
+    role: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(User)
+
+    # ZBAC Enforcement: If Zone Admin, restrict to their zone ONLY
+    if current_user.role == UserRole.ZONE_ADMIN.value:
+        query = query.filter(User.zone_code == current_user.zone_code)
+    elif zone_code and zone_code != "ALL":
+        query = query.filter(User.zone_code == zone_code)
+
+    if role:
+        query = query.filter(User.role == role)
+
+    users = query.order_by(User.id.asc()).all()
+    return {
+        "count": len(users),
+        "users": [u.to_safe_dict() for u in users]
+    }
+
+# 2. POST /admin/users (SYSTEM_ADMIN ONLY)
+@router.post("/users", status_code=status.HTTP_201_CREATED)
+def create_user(
+    req: CreateUserRequest,
+    request: Request,
+    admin_user: User = Depends(require_system_admin),
+    db: Session = Depends(get_db)
+):
+    ip_addr = request.client.host if request.client else "127.0.0.1"
+
+    # Check duplicate username
+    existing = db.query(User).filter(User.username == req.username).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Username '{req.username}' already exists.",
+        )
+
+    # Validate password policy
+    is_valid, msg = validate_password_policy(req.password, username=req.username, zone_code=req.zone_code)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Password Policy Error: {msg}",
+        )
+
+    # Fetch zone if applicable
+    zone_id = None
+    if req.zone_code != "ALL":
+        z = db.query(Zone).filter(Zone.code == req.zone_code).first()
+        if z:
+            zone_id = z.id
+
+    # Create User with Argon2id Hashed Password
+    p_hash = hash_password(req.password)
+    user = User(
+        username=req.username,
+        password_hash=p_hash,
+        role=req.role,
+        zone_id=zone_id,
+        zone_code=req.zone_code,
+        is_active=True,
+        must_change_password=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    create_audit_entry(
+        db, user_id=admin_user.id, username=admin_user.username,
+        role=admin_user.role, zone_code=admin_user.zone_code,
+        action="USER_CREATED", resource_type="User", resource_id=str(user.id),
+        details=f"Created user {user.username} with role {user.role} and zone {user.zone_code}",
+        ip_address=ip_addr, success=True
+    )
+
+    return {
+        "success": True,
+        "message": f"User {user.username} created successfully.",
+        "user": user.to_safe_dict(),
+    }
+
+# 3. PUT /admin/users/{user_id} (SYSTEM_ADMIN ONLY)
+@router.put("/users/{user_id}")
+def update_user(
+    user_id: int,
+    req: UpdateUserRequest,
+    request: Request,
+    admin_user: User = Depends(require_system_admin),
+    db: Session = Depends(get_db)
+):
+    ip_addr = request.client.host if request.client else "127.0.0.1"
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User ID {user_id} not found.",
+        )
+
+    old_role = user.role
+    old_zone = user.zone_code
+
+    if req.role:
+        user.role = req.role
+    if req.zone_code:
+        user.zone_code = req.zone_code
+        if req.zone_code != "ALL":
+            z = db.query(Zone).filter(Zone.code == req.zone_code).first()
+            if z:
+                user.zone_id = z.id
+        else:
+            user.zone_id = None
+
+    if req.is_active is not None:
+        user.is_active = req.is_active
+
+    if req.is_locked is not None:
+        user.is_locked = req.is_locked
+        if not req.is_locked:
+            user.failed_login_attempts = 0
+            user.locked_until = None
+
+    db.commit()
+
+    create_audit_entry(
+        db, user_id=admin_user.id, username=admin_user.username,
+        role=admin_user.role, zone_code=admin_user.zone_code,
+        action="USER_UPDATED", resource_type="User", resource_id=str(user.id),
+        details=f"Updated user {user.username}: Role ({old_role}->{user.role}), Zone ({old_zone}->{user.zone_code})",
+        ip_address=ip_addr, success=True
+    )
+
+    return {
+        "success": True,
+        "message": f"User {user.username} updated successfully.",
+        "user": user.to_safe_dict(),
+    }
+
+# 4. POST /admin/users/{user_id}/reset-password (SYSTEM_ADMIN ONLY)
+@router.post("/users/{user_id}/reset-password")
+def reset_user_password(
+    user_id: int,
+    req: AdminResetPasswordRequest,
+    request: Request,
+    admin_user: User = Depends(require_system_admin),
+    db: Session = Depends(get_db)
+):
+    ip_addr = request.client.host if request.client else "127.0.0.1"
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User ID {user_id} not found.",
+        )
+
+    is_valid, msg = validate_password_policy(req.temporary_password, username=user.username, zone_code=user.zone_code or "")
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Password Policy Error: {msg}",
+        )
+
+    user.password_hash = hash_password(req.temporary_password)
+    user.must_change_password = True  # Force password change on next login
+    user.failed_login_attempts = 0
+    user.is_locked = False
+    user.locked_until = None
+    db.commit()
+
+    create_audit_entry(
+        db, user_id=admin_user.id, username=admin_user.username,
+        role=admin_user.role, zone_code=admin_user.zone_code,
+        action="PASSWORD_RESET", resource_type="User", resource_id=str(user.id),
+        details=f"Admin reset password for user {user.username}",
+        ip_address=ip_addr, success=True
+    )
+
+    return {
+        "success": True,
+        "message": f"Password for {user.username} reset successfully. User must change password on next login.",
+    }
+
+# 5. GET /admin/audit-logs
+@router.get("/audit-logs")
+def list_audit_logs(
+    zone_code: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    limit: int = Query(100, le=500),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(AuditLog)
+
+    # ZBAC: Zone Admins can view audit logs ONLY for their zone
+    if current_user.role == UserRole.ZONE_ADMIN.value:
+        query = query.filter(AuditLog.zone_code == current_user.zone_code)
+    elif zone_code and zone_code != "ALL":
+        query = query.filter(AuditLog.zone_code == zone_code)
+
+    if action:
+        query = query.filter(AuditLog.action == action)
+
+    logs = query.order_by(AuditLog.timestamp.desc()).limit(limit).all()
+    return {
+        "count": len(logs),
+        "audit_logs": [log.to_dict() for log in logs],
+    }

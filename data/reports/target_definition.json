@@ -7,14 +7,14 @@
     "CRITICAL"
   ],
   "class_distribution": {
-    "LOW": 2791,
-    "MEDIUM": 50,
-    "HIGH": 26,
+    "LOW": 2796,
+    "MEDIUM": 47,
+    "HIGH": 24,
     "CRITICAL": 13
   },
   "numerical_risk_stats": {
     "min": 0.0,
     "max": 100.0,
-    "mean": 2.2819131944444444
+    "mean": 2.281888888888889
   }
 }

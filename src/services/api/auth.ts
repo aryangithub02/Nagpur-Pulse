@@ -4,9 +4,11 @@ const STORAGE_KEY = 'nagpur_pulse_user_session';
 
 const DEFAULT_USER: UserSession = {
   id: 'usr-cmdr-01',
+  username: 'admin',
   name: 'Comm. Rajesh Sharma',
   badgeOrId: 'NPG-POLICE-9081',
-  role: 'POLICE_COMMANDER',
+  role: 'SYSTEM_ADMIN',
+  zone: 'ALL',
   department: 'Nagpur Police Command HQ',
   avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
 };
@@ -27,14 +29,13 @@ export function saveUserSession(session: UserSession): void {
 
 export function clearUserSession(): void {
   localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem('nagpur_pulse_auth_token');
+  localStorage.removeItem('nagpur_pulse_jwt');
 }
 
 export function checkPermissions(role: UserRole): PermissionCheck {
   switch (role) {
+    case 'SYSTEM_ADMIN':
     case 'ADMIN':
-    case 'POLICE_COMMANDER':
-    case 'DISPATCHER':
       return {
         canDispatchPolice: true,
         canManageIncidents: true,
@@ -42,19 +43,23 @@ export function checkPermissions(role: UserRole): PermissionCheck {
         canViewTelemetry: true,
         canAccessApiDebug: true,
       };
-    case 'TRAFFIC_OPERATOR':
+    case 'ZONE_ADMIN':
+    case 'DISPATCHER':
+    case 'POLICE_COMMANDER':
       return {
-        canDispatchPolice: false,
+        canDispatchPolice: true,
         canManageIncidents: true,
         canEditTrafficData: true,
         canViewTelemetry: true,
         canAccessApiDebug: true,
       };
+    case 'FIELD_OFFICER':
     case 'POLICE_OFFICER':
+    case 'TRAFFIC_OPERATOR':
       return {
         canDispatchPolice: false,
         canManageIncidents: true,
-        canEditTrafficData: false,
+        canEditTrafficData: true,
         canViewTelemetry: true,
         canAccessApiDebug: false,
       };

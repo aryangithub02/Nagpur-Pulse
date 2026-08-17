@@ -81,23 +81,44 @@ def predict(
     pred_record_id: Optional[int] = None
     pred_timestamp = datetime.utcnow()
 
+    probs = model_output.probabilities or {}
+    p_low = probs.get("LOW", 0.0)
+    p_med = probs.get("MEDIUM", 0.0)
+    p_high = probs.get("HIGH", 0.0)
+    p_crit = probs.get("CRITICAL", 0.0)
+
+    features_to_store = dict(request.features) if request.features else {}
+    if model_output.shap_explanation:
+        features_to_store["shap_explanation"] = model_output.shap_explanation
+
     try:
         db_prediction = Prediction(
             junction_id=junction_id,
+            junction_id_str=f"JNGP{junction_id:03d}" if junction_id else None,
             timestamp=pred_timestamp,
+            prediction_time=pred_timestamp,
             prediction=str(model_output.prediction),
+            risk_level=str(model_output.prediction),
+            risk_score=model_output.probability,
             probability=model_output.probability,
+            probability_low=p_low * 100.0 if p_low <= 1.0 else p_low,
+            probability_medium=p_med * 100.0 if p_med <= 1.0 else p_med,
+            probability_high=p_high * 100.0 if p_high <= 1.0 else p_high,
+            probability_critical=p_crit * 100.0 if p_crit <= 1.0 else p_crit,
+            model_name="RandomForest",
+            model_version="rf_v2_retrained",
+            feature_version="features_v2",
             is_mock=model_output.is_mock,
-            features_used=request.features,
+            features_used=features_to_store,
         )
         db.add(db_prediction)
         db.commit()
         db.refresh(db_prediction)
         pred_record_id = db_prediction.id
+        logger.info(f"✅ [NEON DB INSERT] Committed Prediction Record ID #{pred_record_id} for Junction ID {junction_id}")
     except SQLAlchemyError as db_err:
         db.rollback()
         logger.error(f"Failed to persist prediction to database: {str(db_err)}")
-        # Do not fail prediction output if DB storage fails; log error and attach advisory message
         model_output.message = (
             f"{model_output.message or ''} (Warning: Database prediction persistence failed)".strip()
         )
@@ -111,6 +132,8 @@ def predict(
         probability=model_output.probability,
         is_mock=model_output.is_mock,
         message=model_output.message,
+        probabilities=model_output.probabilities,
+        shap_explanation=model_output.shap_explanation,
     )
 
 

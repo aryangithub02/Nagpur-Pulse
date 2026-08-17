@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Dict, Any, List, Optional
 import httpx
-from app.services.routing_service import (
+from app.services.spatial_utils import (
     haversine_distance_km,
     estimate_travel_time_minutes,
     generate_route_waypoints,

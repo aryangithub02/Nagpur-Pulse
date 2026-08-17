@@ -1,5 +1,6 @@
 import { NagpurJunction, TrafficMetrics, CongestionCategory } from '../types/traffic';
 import { IncidentItem } from '../types/incident';
+import { NAGPUR_JUNCTIONS } from '../data/nagpurJunctions';
 
 export const DEFAULT_TOMTOM_KEY = 'STK0HzqBHVxa9klWJTgrYwbWOBExeW9V';
 
@@ -28,12 +29,12 @@ export function determineCongestionLevel(
   freeFlowSpeed: number,
   roadClosure = false
 ): CongestionCategory {
-  if (roadClosure || currentSpeed <= 4) return 'gridlock';
+  if (roadClosure || currentSpeed <= 6) return 'gridlock';
   const ratio = freeFlowSpeed > 0 ? currentSpeed / freeFlowSpeed : 1;
 
-  if (ratio >= 0.80) return 'fluid';
-  if (ratio >= 0.55) return 'moderate';
-  if (ratio >= 0.30) return 'heavy';
+  if (ratio >= 0.75) return 'fluid';
+  if (ratio >= 0.48) return 'moderate';
+  if (ratio >= 0.25) return 'heavy';
   return 'gridlock';
 }
 
@@ -45,7 +46,6 @@ function generateRealisticNagpurMetrics(lat: number, lng: number, streetName?: s
 
   const isMorningPeak = istHour >= 8.5 && istHour <= 11.5;
   const isEveningPeak = istHour >= 17.5 && istHour <= 21.0;
-  const isNight = istHour >= 23 || istHour <= 5.5;
 
   const seed = Math.sin(lat * 1000 + lng * 2000) * 10000;
   const pseudoRandom = Math.abs(seed - Math.floor(seed));
@@ -53,17 +53,30 @@ function generateRealisticNagpurMetrics(lat: number, lng: number, streetName?: s
   const baseFreeFlow = 45 + Math.floor(pseudoRandom * 18);
   let currentSpeed = baseFreeFlow;
 
-  if (isMorningPeak) {
-    const congestionFactor = 0.35 + pseudoRandom * 0.35;
-    currentSpeed = Math.max(12, Math.round(baseFreeFlow * congestionFactor));
-  } else if (isEveningPeak) {
-    const congestionFactor = 0.30 + pseudoRandom * 0.38;
-    currentSpeed = Math.max(10, Math.round(baseFreeFlow * congestionFactor));
-  } else if (isNight) {
-    currentSpeed = baseFreeFlow - Math.floor(pseudoRandom * 4);
+  // Match junction profile if known
+  const matchedJunction = NAGPUR_JUNCTIONS.find(
+    (j) => Math.abs(j.latitude - lat) < 0.002 && Math.abs(j.longitude - lng) < 0.002
+  );
+
+  const baseCongestion = matchedJunction?.trafficCongestion || (
+    pseudoRandom > 0.85 ? 'Gridlock' :
+    pseudoRandom > 0.58 ? 'Heavy' :
+    pseudoRandom > 0.32 ? 'Moderate' : 'Normal'
+  );
+
+  if (baseCongestion === 'Gridlock') {
+    currentSpeed = Math.max(5, Math.round(baseFreeFlow * (0.16 + pseudoRandom * 0.10)));
+  } else if (baseCongestion === 'Heavy') {
+    currentSpeed = Math.max(11, Math.round(baseFreeFlow * (0.30 + pseudoRandom * 0.16)));
+  } else if (baseCongestion === 'Moderate') {
+    currentSpeed = Math.max(18, Math.round(baseFreeFlow * (0.50 + pseudoRandom * 0.20)));
   } else {
-    const congestionFactor = 0.65 + pseudoRandom * 0.28;
-    currentSpeed = Math.max(18, Math.round(baseFreeFlow * congestionFactor));
+    // Normal / Fluid
+    if (isMorningPeak || isEveningPeak) {
+      currentSpeed = Math.max(20, Math.round(baseFreeFlow * (0.65 + pseudoRandom * 0.22)));
+    } else {
+      currentSpeed = Math.max(30, Math.round(baseFreeFlow * (0.80 + pseudoRandom * 0.18)));
+    }
   }
 
   const segmentLengthMeters = 400 + Math.floor(pseudoRandom * 400);

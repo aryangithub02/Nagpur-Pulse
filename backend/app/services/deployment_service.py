@@ -86,7 +86,7 @@ class DeploymentService:
             candidates.sort(key=lambda x: (x[0], x[1]))
             best_eta, best_distance, best_unit = candidates[0]
 
-        rec_id = f"rec_{int(datetime.utcnow().timestamp())}_{location_id}"
+        rec_id = f"rec_{int(datetime.utcnow().timestamp())}_{datetime.utcnow().microsecond}_{location_id}"
         unit_id = best_unit.id if best_unit else None
 
         formatted_reason = reason

@@ -84,7 +84,7 @@ The shared Leaflet map engine supports multi-layer toggle:
 
 2. **Run Integrated Frontend**:
    ```bash
-   cd "c:\Users\lenovo\OneDrive\Desktop\nagpur pulse frontend"
+   cd "c:\Users\lenovo\OneDrive\Desktop\Nagpur Pulse\Nagpur-Pulse"
    npm install   # or bun install
    npm run dev   # launches at http://localhost:3000
    ```

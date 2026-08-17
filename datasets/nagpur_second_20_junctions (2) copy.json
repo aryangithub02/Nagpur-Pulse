@@ -1,0 +1,30 @@
+{
+  "city": "Nagpur",
+  "state": "Maharashtra",
+  "country": "India",
+  "coordinate_system": "WGS84 decimal degrees",
+  "source": "OpenStreetMap/Nominatim and OpenStreetMap named-place nodes where available",
+  "notes": "Coordinates marked approximate should be checked against a live map before safety-critical, surveying, or navigation use.",
+  "junctions": [
+    {"id": 1, "name": "Itwari", "latitude": 21.1569338, "longitude": 79.1102582, "approximate": false, "source": "OSM named place"},
+    {"id": 2, "name": "Sitabuldi Chowk", "latitude": 21.1415725, "longitude": 79.0828592, "approximate": true, "source": "OSM Sitabuldi area / metro station reference"},
+    {"id": 3, "name": "RBI Chowk", "latitude": 21.1526445, "longitude": 79.0809738, "approximate": false, "source": "Nominatim: RBI Square"},
+    {"id": 4, "name": "Medical Chowk", "latitude": 21.1314524, "longitude": 79.0977219, "approximate": false, "source": "OSM Medical Square"},
+    {"id": 5, "name": "Cotton Market Chowk", "latitude": 21.1459896, "longitude": 79.0897729, "approximate": false, "source": "OSM Cotton Market"},
+    {"id": 6, "name": "Manakpur Chowk", "latitude": 21.1878071, "longitude": 79.0790929, "approximate": false, "source": "Nominatim: Mankapur Square"},
+    {"id": 7, "name": "Katol Road Chowk", "latitude": 21.1695203, "longitude": 79.0257646, "approximate": true, "source": "Map search result for Katol Road junction area"},
+    {"id": 8, "name": "Mate Chowk", "latitude": 21.1216256, "longitude": 79.0564783, "approximate": false, "source": "OSM named square"},
+    {"id": 9, "name": "Pardi Chowk", "latitude": 21.1450232, "longitude": 79.1682830, "approximate": true, "source": "OSM Pardi area reference"},
+    {"id": 10, "name": "Kamptee Chowk", "latitude": 21.1888687, "longitude": 79.1238271, "approximate": true, "source": "OSM Kamptee Road reference"},
+    {"id": 11, "name": "Hingna Chowk", "latitude": 21.1233698, "longitude": 79.0436319, "approximate": false, "source": "OSM Hingna T-Point"},
+    {"id": 12, "name": "Manewada Chowk", "latitude": 21.1051881, "longitude": 79.1024825, "approximate": false, "source": "Nominatim: Manewada Square"},
+    {"id": 13, "name": "Pratap Nagar Chowk", "latitude": 21.1137148, "longitude": 79.0567838, "approximate": false, "source": "OSM named square"},
+    {"id": 14, "name": "Ajni Chowk", "latitude": 21.1182122, "longitude": 79.0721071, "approximate": false, "source": "OSM Ajni Square"},
+    {"id": 15, "name": "Chatrapati Chowk", "latitude": 21.1091390, "longitude": 79.0696114, "approximate": true, "source": "Nominatim: Chhatrapati Square"},
+    {"id": 16, "name": "Dighori Chowk", "latitude": 21.1018000, "longitude": 79.1310000, "approximate": true, "source": "Approximate locality/junction coordinate"},
+    {"id": 17, "name": "Variety Square", "latitude": 21.1434953, "longitude": 79.0809881, "approximate": false, "source": "Nominatim: Variety Square"},
+    {"id": 18, "name": "Jhansi Rani Square", "latitude": 21.1411618, "longitude": 79.0801886, "approximate": false, "source": "OSM named square"},
+    {"id": 19, "name": "Sakkardara Square", "latitude": 21.1218473, "longitude": 79.1152792, "approximate": true, "source": "OSM Sakkardara area reference"},
+    {"id": 20, "name": "Manish Nagar–Besa Junction", "latitude": 21.0849744, "longitude": 79.0955504, "approximate": true, "source": "OSM Besa Square / Manish Nagar-Besa area reference"}
+  ]
+}

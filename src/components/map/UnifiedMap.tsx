@@ -4,6 +4,8 @@ import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { NAGPUR_JUNCTIONS, NAGPUR_CENTER_COORDINATES } from '../../data/nagpurJunctions';
 import { NAGPUR_ARTERIAL_CORRIDORS } from '../../data/nagpurCorridors';
 import { getTomTomApiKey } from '../../services/tomtomService';
+import { getWeatherHeatmap, WeatherHeatmapPoint, WeatherHeatmapResponse } from '../../services/api/weather';
+import { resourceAllocationApi, AllocationAssignment } from '../../services/api/resourceAllocation';
 import {
   Shield,
   Layers,
@@ -22,6 +24,7 @@ import {
   Copy,
   Zap,
   Cpu,
+  CloudRain,
 } from 'lucide-react';
 
 interface LayerVisibility {
@@ -31,6 +34,8 @@ interface LayerVisibility {
   route: boolean;
   risk: boolean;
   coverage: boolean;
+  weather: boolean;
+  allocations: boolean;
 }
 
 type MapLayerType = 'dark' | 'satellite';
@@ -77,15 +82,59 @@ export const UnifiedMap: React.FC<{
   const [selectedCorridorId, setSelectedCorridorId] = useState<string>('all');
   const [currentZoom, setCurrentZoom] = useState<number>(NAGPUR_CENTER_COORDINATES.defaultZoom);
   const [copiedCoord, setCopiedCoord] = useState<boolean>(false);
-  const [predictResult, setPredictResult] = useState<{ text: string; isLoading: boolean } | null>(null);
+  const [predictResult, setPredictResult] = useState<{ text: string; detailText?: string; isLoading: boolean } | null>(null);
+
+  const [weatherPoints, setWeatherPoints] = useState<WeatherHeatmapPoint[]>([]);
+  const [weatherResponse, setWeatherResponse] = useState<WeatherHeatmapResponse | null>(null);
+  const [weatherForecastHour, setWeatherForecastHour] = useState<number>(0);
+  const [weatherCondFilter, setWeatherCondFilter] = useState<string>('ALL');
+  const [weatherLevelFilter, setWeatherLevelFilter] = useState<string>('ALL');
+  const [selectedWeatherPoint, setSelectedWeatherPoint] = useState<WeatherHeatmapPoint | null>(null);
+  const [allocations, setAllocations] = useState<AllocationAssignment[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHeatmap = async () => {
+      const res = await getWeatherHeatmap(weatherForecastHour);
+      if (isMounted) {
+        setWeatherResponse(res);
+        setWeatherPoints(res.heatmap_points || []);
+      }
+    };
+    const fetchAllocations = async () => {
+      try {
+        const res = await resourceAllocationApi.getLatest();
+        if (isMounted && res.assignments) {
+          setAllocations(res.assignments);
+        }
+      } catch (err) {
+        console.error('Failed to fetch allocation vectors for map:', err);
+      }
+    };
+
+    fetchHeatmap();
+    fetchAllocations();
+
+    const interval = setInterval(() => {
+      fetchHeatmap();
+      fetchAllocations();
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [weatherForecastHour]);
 
   const [layers, setLayers] = useState<LayerVisibility>({
     traffic: true,
-    incidents: false,
+    incidents: true,
     policeUnits: true,
     route: true,
     risk: false,
     coverage: false,
+    weather: false,
+    allocations: true,
   });
 
   const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
@@ -312,27 +361,105 @@ export const UnifiedMap: React.FC<{
       });
     }
 
+    // Weather Impact Heatmap Circles Overlay (Scale: 0-20 LOW, 21-40 MODERATE, 41-60 ELEVATED, 61-80 HIGH, 81-100 SEVERE)
+    if (layers.weather && weatherPoints.length > 0) {
+      weatherPoints.forEach((wpt) => {
+        // Apply condition filter
+        if (
+          weatherCondFilter !== 'ALL' &&
+          !wpt.weather_condition.toLowerCase().includes(weatherCondFilter.toLowerCase())
+        ) {
+          return;
+        }
+
+        // Apply impact level filter
+        if (
+          weatherLevelFilter !== 'ALL' &&
+          wpt.impact_level.toUpperCase() !== weatherLevelFilter.toUpperCase()
+        ) {
+          return;
+        }
+
+        const color =
+          wpt.impact_level === 'SEVERE'
+            ? '#ef4444'
+            : wpt.impact_level === 'HIGH'
+            ? '#f97316'
+            : wpt.impact_level === 'ELEVATED'
+            ? '#f59e0b'
+            : wpt.impact_level === 'MODERATE'
+            ? '#06b6d4'
+            : '#38bdf8';
+
+        const radius = Math.max(16, Math.min(32, wpt.combined_score * 0.30 + 8));
+
+        const circle = L.circleMarker([wpt.latitude, wpt.longitude], {
+          radius: radius,
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.25, // Subtle translucent overlay
+          weight: 1.5,
+        });
+
+        circle.bindTooltip(
+          `<div class="p-1 font-mono text-[11px]">
+            <b>WEATHER IMPACT: ${wpt.name}</b><br/>
+            <b>Combined Score:</b> ${wpt.combined_score} / 100 (${wpt.impact_level})<br/>
+            <b>Weather Impact:</b> ${wpt.weather_impact_score} pts | <b>Traffic:</b> ${wpt.traffic_congestion_score}%<br/>
+            <b>Condition:</b> ${wpt.weather_condition} (${wpt.precipitation_mm} mm/h)
+          </div>`,
+          { direction: 'top' }
+        );
+
+        circle.on('click', () => {
+          setSelectedWeatherPoint(wpt);
+        });
+
+        circle.addTo(layerGroup);
+      });
+    }
+
     // Traffic Junction Spot Pins (Sleek Pins: Name on Hover, Telemetry Card on Click)
     if (layers.traffic) {
       junctionStates.forEach((item) => {
         const { junction, metrics } = item;
         const isSelected = selectedJunction?.id === junction.id;
-        const speed = metrics ? metrics.currentSpeed : 30;
-        const level = metrics?.congestionLevel || 'fluid';
+        const speed = metrics ? metrics.currentSpeed : (
+          junction.trafficCongestion === 'Gridlock' ? 8 :
+          junction.trafficCongestion === 'Heavy' ? 16 :
+          junction.trafficCongestion === 'Moderate' ? 26 : 42
+        );
+        const level = metrics?.congestionLevel || (
+          junction.trafficCongestion === 'Gridlock' ? 'gridlock' :
+          junction.trafficCongestion === 'Heavy' ? 'heavy' :
+          junction.trafficCongestion === 'Moderate' ? 'moderate' : 'fluid'
+        );
 
-        // Junction Pin Color Scheme matching user reference specification
-        let pinColor = '#22C55E'; // Low Risk (#22C55E Green)
+        // Check if there is an active incident at or near this junction
+        const hasIncident = incidents.some(
+          (inc) =>
+            inc.nearestJunction?.id === junction.id ||
+            (Math.abs(inc.location[0] - junction.latitude) < 0.003 &&
+              Math.abs(inc.location[1] - junction.longitude) < 0.003)
+        );
+
+        // Junction Pin Color Scheme matching user reference specification:
+        // Red: Gridlock / Active Incidents / Critical
+        // Orange: Heavy Traffic / High Priority Bottlenecks
+        // Yellow: Moderate Traffic / Medium Congestion
+        // Green: Fluid Traffic / Low Congestion
+        let pinColor = '#22C55E'; // Low Risk / Fluid (#22C55E Green)
         let speedBadgeClass = 'bg-[#12141d]/95 text-emerald-300 border-emerald-500/50';
 
-        if (level === 'moderate') {
+        if (hasIncident || level === 'gridlock' || junction.trafficCongestion === 'Gridlock') {
+          pinColor = '#EF4444'; // Critical / Gridlock / Incident (#EF4444 Red)
+          speedBadgeClass = 'bg-[#12141d]/95 text-red-300 border-red-500/50';
+        } else if (level === 'heavy' || junction.trafficCongestion === 'Heavy') {
+          pinColor = '#F97316'; // Heavy / High Risk (#F97316 Orange)
+          speedBadgeClass = 'bg-[#12141d]/95 text-orange-300 border-orange-500/50';
+        } else if (level === 'moderate' || junction.trafficCongestion === 'Moderate') {
           pinColor = '#FACC15'; // Moderate Risk (#FACC15 Yellow)
           speedBadgeClass = 'bg-[#12141d]/95 text-amber-300 border-amber-500/50';
-        } else if (level === 'heavy') {
-          pinColor = '#F97316'; // High Risk (#F97316 Orange)
-          speedBadgeClass = 'bg-[#12141d]/95 text-orange-300 border-orange-500/50';
-        } else if (level === 'gridlock') {
-          pinColor = '#EF4444'; // Critical Risk (#EF4444 Red)
-          speedBadgeClass = 'bg-[#12141d]/95 text-red-300 border-red-500/50';
         }
 
         // Show label pill ONLY on hover or if explicitly set to 'all'
@@ -516,9 +643,44 @@ export const UnifiedMap: React.FC<{
         marker.addTo(layerGroup);
       });
     }
+
+    // OR-Tools Resource Allocation Flow Layer (#6366F1 Indigo Polyline Vectors)
+    if (layers.allocations && allocations.length > 0) {
+      allocations.forEach((alloc) => {
+        const u = units.find((item) => item.id === alloc.unit_id);
+        const jState = junctionStates.find((item) => item.junction.id === alloc.location_id);
+        if (u && u.location && jState) {
+          const startPt: [number, number] = [u.location.latitude, u.location.longitude];
+          const endPt: [number, number] = [jState.junction.latitude, jState.junction.longitude];
+
+          const line = L.polyline([startPt, endPt], {
+            color: '#6366F1',
+            weight: 3,
+            dashArray: '6, 8',
+            opacity: 0.85,
+          });
+
+          line.bindTooltip(
+            `<div class="p-1 font-mono text-[11px]">
+              <b>OR-TOOLS ALLOCATION</b><br/>
+              <b>Unit:</b> ${alloc.unit_id} ──► ${alloc.location_name}<br/>
+              <b>Risk:</b> ${alloc.risk_score}% (${alloc.risk_class})<br/>
+              <b>ETA:</b> ${alloc.eta_minutes} min | <b>Score:</b> ${alloc.assignment_value}
+            </div>`,
+            { sticky: true }
+          );
+
+          line.addTo(layerGroup);
+        }
+      });
+    }
   }, [
     layers,
     units,
+    allocations,
+    weatherPoints,
+    weatherCondFilter,
+    weatherLevelFilter,
     selectedUnit,
     incidents,
     junctionStates,
@@ -582,6 +744,8 @@ export const UnifiedMap: React.FC<{
             <RotateCcw className="w-3.5 h-3.5 text-purple-400" />
             <span>Reset Map View</span>
           </button>
+
+
         </div>
       </div>
 
@@ -646,6 +810,30 @@ export const UnifiedMap: React.FC<{
                 className="accent-amber-500"
               />
             </label>
+
+            <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
+              <span className="flex items-center gap-2 text-slate-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Weather Impact Layer
+              </span>
+              <input
+                type="checkbox"
+                checked={layers.weather}
+                onChange={(e) => setLayers({ ...layers, weather: e.target.checked })}
+                className="accent-cyan-400"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-1.5 hover:bg-slate-800/60 rounded cursor-pointer">
+              <span className="flex items-center gap-2 text-slate-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-400"></span> OR-Tools Allocation Layer
+              </span>
+              <input
+                type="checkbox"
+                checked={layers.allocations}
+                onChange={(e) => setLayers({ ...layers, allocations: e.target.checked })}
+                className="accent-indigo-400"
+              />
+            </label>
           </div>
         )}
       </div>
@@ -704,6 +892,35 @@ export const UnifiedMap: React.FC<{
             </div>
           </div>
 
+          {/* Weather Impact Section inside Junction Inspector Card */}
+          {weatherPoints.length > 0 && (() => {
+            const jWpt = weatherPoints.find((w) => w.junction_id === String(selectedJunction.id));
+            if (!jWpt) return null;
+            return (
+              <div className="my-2.5 p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs font-mono space-y-1 text-cyan-200">
+                <div className="flex items-center justify-between font-bold text-cyan-300">
+                  <span className="flex items-center gap-1">
+                    <CloudRain className="w-3.5 h-3.5 text-cyan-400" />
+                    WEATHER & IMPACT
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 font-bold">
+                    {jWpt.impact_level}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-[11px] pt-1">
+                  <div><span className="text-slate-400">Condition:</span> <strong className="text-white">{jWpt.weather_condition}</strong></div>
+                  <div><span className="text-slate-400">Rainfall:</span> <strong className="text-cyan-300">{jWpt.precipitation_mm} mm/h</strong></div>
+                  <div><span className="text-slate-400">Visibility:</span> <strong className="text-slate-200">{jWpt.visibility_km} km</strong></div>
+                  <div><span className="text-slate-400">Wind:</span> <strong className="text-slate-200">{jWpt.wind_speed_kmh} km/h</strong></div>
+                </div>
+                <div className="pt-1.5 border-t border-cyan-800/40 flex items-center justify-between font-bold text-[11px]">
+                  <span>Weather Impact Score: <strong className="text-amber-300">{jWpt.weather_impact_score}</strong></span>
+                  <span>Combined: <strong className="text-emerald-300">{jWpt.combined_score}/100</strong></span>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Simple Action Buttons */}
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -724,12 +941,21 @@ export const UnifiedMap: React.FC<{
 
             <button
               onClick={async () => {
-                setPredictResult({ text: 'Computing...', isLoading: true });
+                setPredictResult({ text: 'Computing ML Risk & SHAP...', isLoading: true });
                 const curSpeed = selectedState?.metrics?.currentSpeed || 35;
                 const res = await requestPredictionForJunction(selectedJunction.id, curSpeed, 80);
                 if (res) {
+                  const rawScore = res.risk_score ?? (res.probability !== undefined && res.probability <= 1 ? res.probability * 100 : res.probability);
+                  const scorePercent = Math.round(rawScore ?? 45);
+                  const levelText = typeof res.prediction === 'string' && res.prediction ? res.prediction : (res.risk_level || 'ANALYZED');
+                  const dbIdText = res.id ? ` [DB Record #${res.id}]` : '';
+                  const topShap = res.shap_explanation && res.shap_explanation.length > 0
+                    ? res.shap_explanation[0].description
+                    : '';
+
                   setPredictResult({
-                    text: `Risk: ${res.prediction} (${Math.round((res.probability || 0.85) * 100)}%)`,
+                    text: `Risk: ${levelText} (${scorePercent}%)${dbIdText}`,
+                    detailText: topShap,
                     isLoading: false,
                   });
                 } else {
@@ -744,10 +970,101 @@ export const UnifiedMap: React.FC<{
           </div>
 
           {predictResult && (
-            <div className="mt-2.5 p-2 rounded-xl bg-purple-950/90 border border-purple-500/40 text-[11px] font-mono text-purple-200 flex items-center justify-between">
-              <span>{predictResult.text}</span>
+            <div className="mt-2.5 p-2.5 rounded-xl bg-purple-950/90 border border-purple-500/40 text-[11px] font-mono text-purple-200 space-y-1">
+              <div className="flex items-center justify-between font-bold text-purple-300">
+                <span>{predictResult.text}</span>
+              </div>
+              {predictResult.detailText && (
+                <div className="text-[10px] text-purple-300/80 border-t border-purple-800/60 pt-1 flex items-center gap-1">
+                  <span className="text-amber-400 font-bold">SHAP:</span>
+                  <span>{predictResult.detailText}</span>
+                </div>
+              )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ----------------------------------------------------------------------- */}
+      {/* WEATHER IMPACT DETAIL POPUP MODAL (ON CLICK WEATHER POINT) */}
+      {/* ----------------------------------------------------------------------- */}
+      {selectedWeatherPoint && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f172a] border border-cyan-500/50 rounded-2xl max-w-md w-full p-5 shadow-2xl text-slate-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <CloudRain className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="font-extrabold text-base text-white">{selectedWeatherPoint.name}</h3>
+                  <span className="text-[11px] text-slate-400 font-mono">Weather & Derived Traffic Impact Analysis</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedWeatherPoint(null)}
+                className="text-slate-400 hover:text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Observed Weather Card */}
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
+              <div className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Observed Weather Conditions</div>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[10px]">Condition</span>
+                  <strong className="text-white text-sm">{selectedWeatherPoint.weather_condition}</strong>
+                </div>
+                <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[10px]">Rainfall Rate</span>
+                  <strong className="text-cyan-300 text-sm">{selectedWeatherPoint.precipitation_mm} mm/hr</strong>
+                </div>
+                <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[10px]">Visibility Range</span>
+                  <strong className="text-slate-200 text-sm">{selectedWeatherPoint.visibility_km} km</strong>
+                </div>
+                <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[10px]">Wind Velocity</span>
+                  <strong className="text-slate-200 text-sm">{selectedWeatherPoint.wind_speed_kmh} km/h</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Derived Operational Impact Card */}
+            <div className="bg-indigo-950/40 p-3 rounded-xl border border-indigo-500/30 space-y-2 font-mono">
+              <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider">Derived Operational Impact</div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-slate-950 p-2 rounded border border-indigo-900">
+                  <span className="text-slate-400 block text-[10px]">Weather Impact</span>
+                  <strong className="text-amber-300 text-sm">{selectedWeatherPoint.weather_impact_score} / 100</strong>
+                </div>
+                <div className="bg-slate-950 p-2 rounded border border-indigo-900">
+                  <span className="text-slate-400 block text-[10px]">Live Congestion</span>
+                  <strong className="text-orange-300 text-sm">{selectedWeatherPoint.traffic_congestion_score}%</strong>
+                </div>
+                <div className="bg-slate-950 p-2 rounded border border-indigo-900">
+                  <span className="text-slate-400 block text-[10px]">Combined Score</span>
+                  <strong className="text-emerald-400 text-sm">{selectedWeatherPoint.combined_score} / 100</strong>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-slate-300 pt-1 flex items-center justify-between border-t border-indigo-900/60">
+                <span>Operational Impact Level:</span>
+                <span className="px-2 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-500/40">
+                  {selectedWeatherPoint.impact_level}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setSelectedWeatherPoint(null)}
+                className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 rounded-lg text-xs font-bold transition"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -756,13 +1073,13 @@ export const UnifiedMap: React.FC<{
       {/* ----------------------------------------------------------------------- */}
       <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none gap-2">
         {/* Left Legend Box */}
-        <div className="px-3.5 py-2 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-800 text-xs font-mono pointer-events-auto flex items-center gap-4 shadow-xl">
+        <div className="px-3.5 py-2 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-800 text-xs font-mono pointer-events-auto flex items-center gap-4 shadow-xl flex-wrap">
           <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
             <Activity className="w-3.5 h-3.5 text-pink-400" />
-            <span>INTER-JUNCTION ROUTES & FLOW</span>
+            <span>ROUTES & MAP OVERLAYS</span>
           </div>
 
-          <div className="h-4 w-px bg-slate-800"></div>
+          <div className="h-4 w-px bg-slate-800 hidden md:block"></div>
 
           <div className="flex items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1.5 text-slate-300">
@@ -784,6 +1101,31 @@ export const UnifiedMap: React.FC<{
               <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span> Police Active
             </span>
           </div>
+
+          {/* Weather Impact Heatmap Scale Legend */}
+          {layers.weather && (
+            <>
+              <div className="h-4 w-px bg-slate-800 hidden md:block"></div>
+              <div className="flex items-center gap-2 text-[10px] font-mono">
+                <span className="text-cyan-400 font-bold">WEATHER SCALE:</span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-[#3B82F6]"></span> LOW (0-20)
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981]"></span> MOD (21-40)
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span> ELEV (41-60)
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-[#F97316]"></span> HIGH (61-80)
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span> SEVERE (81-100)
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right Map Base Layer Controls */}

@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { DispatchModal } from './DispatchModal';
-import { Shield, Navigation, Radio, Activity, AlertTriangle, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ResourceAllocationPanel } from './ResourceAllocationPanel';
+import { AuditTrailPanel } from './AuditTrailPanel';
+import { Shield, Navigation, Radio, Activity, AlertTriangle, ChevronRight, CheckCircle2, Zap } from 'lucide-react';
+import { WhatIfSimulationModal } from '../simulation/WhatIfSimulationModal';
 
 export const PoliceCommandView: React.FC = () => {
   const {
@@ -16,6 +19,7 @@ export const PoliceCommandView: React.FC = () => {
   } = useNagpurPulseStore() as any;
 
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState<boolean>(false);
+  const [isWhatIfModalOpen, setIsWhatIfModalOpen] = useState<boolean>(false);
   const [targetUnitId, setTargetUnitId] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -71,15 +75,22 @@ export const PoliceCommandView: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between font-mono">
+        <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col justify-center gap-2 font-mono">
+          <button
+            onClick={() => setIsWhatIfModalOpen(true)}
+            className="w-full py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-600/20 transition"
+          >
+            <Zap className="w-3.5 h-3.5 text-cyan-300 fill-current animate-pulse" />
+            <span>WHAT-IF SIMULATOR</span>
+          </button>
           <button
             onClick={() => {
               setTargetUnitId(selectedUnit?.id);
               setIsDispatchModalOpen(true);
             }}
-            className="w-full h-full bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition"
+            className="w-full py-1.5 bg-blue-600/80 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition"
           >
-            <Navigation className="w-4 h-4" />
+            <Navigation className="w-3.5 h-3.5" />
             <span>Open Dispatch Modal</span>
           </button>
         </div>
@@ -195,8 +206,14 @@ export const PoliceCommandView: React.FC = () => {
         </div>
       </div>
 
-      {/* Live Radio Log Transcript Stream */}
-      <section className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3 font-mono">
+      {/* OR-Tools Resource Allocation Command Panel */}
+      <ResourceAllocationPanel />
+
+      {/* Human Decision Record & Audit Trail */}
+      <AuditTrailPanel />
+
+      {/* Live Radio Log Section */}
+      <section className="bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3 font-mono">
         <div className="flex items-center justify-between text-xs">
           <span className="font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
             <Radio className="w-4 h-4 text-cyan-400" />
@@ -221,6 +238,12 @@ export const PoliceCommandView: React.FC = () => {
         isOpen={isDispatchModalOpen}
         onClose={() => setIsDispatchModalOpen(false)}
         initialUnitId={targetUnitId}
+      />
+
+      {/* What-If Simulation Sandbox Modal */}
+      <WhatIfSimulationModal
+        isOpen={isWhatIfModalOpen}
+        onClose={() => setIsWhatIfModalOpen(false)}
       />
     </div>
   );

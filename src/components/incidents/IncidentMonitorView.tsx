@@ -30,6 +30,7 @@ import {
   Check,
   RotateCcw,
   Info,
+  CloudRain,
 } from 'lucide-react';
 
 // Extended Incident Data Interface for AI Command Center
@@ -603,6 +604,48 @@ export const IncidentMonitorView: React.FC<{
                 <div><span className="text-slate-400">Estimated Delay:</span> <span className="text-amber-300 font-bold">+18 min</span></div>
                 <div><span className="text-slate-400">Affected Roads:</span> <span className="text-slate-300">{detailDrawerIncident.affectedRoads?.join(', ')}</span></div>
                 <div><span className="text-slate-400">Affected Junctions:</span> <span className="text-slate-300">{detailDrawerIncident.affectedJunctions?.join(', ')}</span></div>
+              </div>
+
+              {/* Incident Weather Context (Section 16 & 17 of Prompt) */}
+              <div className="col-span-1 md:col-span-2 bg-[#080a14] p-4 rounded-xl border border-cyan-500/30 space-y-1.5">
+                <div className="font-bold text-cyan-300 text-xs uppercase tracking-wider mb-1 flex items-center justify-between border-b border-slate-800 pb-1">
+                  <span className="flex items-center gap-1.5">
+                    <CloudRain className="w-4 h-4 text-cyan-400" />
+                    <span>Environmental Weather Context</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">
+                    OBSERVED AT INCIDENT SITE
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-200 font-semibold pt-1">
+                  "Incident occurred during current weather observation."
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-[11px]">
+                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Condition</span>
+                    <strong className="text-white">Rain / Drizzle</strong>
+                  </div>
+                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Rainfall Rate</span>
+                    <strong className="text-cyan-300">0.29 mm/h</strong>
+                  </div>
+                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Visibility Range</span>
+                    <strong className="text-slate-200">10.0 km</strong>
+                  </div>
+                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Weather Impact</span>
+                    <strong className="text-amber-300">LOW (9.6 pts)</strong>
+                  </div>
+                </div>
+
+                {detailDrawerIncident.category === 'Hazard' || detailDrawerIncident.description.toLowerCase().includes('water') ? (
+                  <div className="mt-2 p-2 rounded bg-indigo-950/40 border border-indigo-500/30 text-[11px] text-indigo-300">
+                    <strong>Waterlogging Operational Relationship:</strong> Rainfall ──► Weather Impact ──► Waterlogging Incident ──► Traffic Congestion ──► Risk.
+                  </div>
+                ) : null}
               </div>
 
               {/* Response Units Table */}

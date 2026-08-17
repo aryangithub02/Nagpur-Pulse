@@ -5,6 +5,14 @@ export interface PredictionRequestPayload {
   features: Record<string, any>;
 }
 
+export interface ShapExplanationItem {
+  feature: string;
+  value: number;
+  shap_val: number;
+  impact: string;
+  description: string;
+}
+
 export interface PredictionResponseBackend {
   id?: number;
   junction_id?: number;
@@ -14,6 +22,8 @@ export interface PredictionResponseBackend {
   probability?: number;
   is_mock?: boolean;
   message?: string;
+  probabilities?: Record<string, number>;
+  shap_explanation?: ShapExplanationItem[];
 }
 
 export interface PredictionHistoryItemBackend {
@@ -56,13 +66,28 @@ export interface RecommendationListResponseBackend {
 export async function requestPrediction(
   payload: PredictionRequestPayload
 ): Promise<{ data: PredictionResponseBackend | null; error: string | null }> {
+  console.group('🤖 [ML ENGINE] EXECUTING INFERENCE REQUEST');
+  console.log('📡 Junction Target Payload:', payload);
+  console.log('⏳ Dispatching POST request to /predict (Neon DB Persistence Enabled)...');
+  
   const res = await apiClient<PredictionResponseBackend>('/predict', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
   if (res.error || !res.data) {
+    console.error('❌ [ML ENGINE] Prediction Failed:', res.error);
+    console.groupEnd();
     return { data: null, error: res.error || 'Failed to request prediction' };
   }
+
+  console.log('✅ [ML ENGINE] PREDICTION CREATED & INSERTED IN NEON DB:');
+  console.log('   🆔 Record ID in Neon DB:', res.data.id);
+  console.log('   🎯 Predicted Risk Class:', res.data.prediction);
+  console.log('   📊 Calculated Risk Score:', `${res.data.probability}%`);
+  console.log('   📈 Class Probabilities Distribution:', res.data.probabilities);
+  console.log('   🔍 SHAP Feature Importance Explanations:', res.data.shap_explanation);
+  console.groupEnd();
+
   return { data: res.data, error: null };
 }
 

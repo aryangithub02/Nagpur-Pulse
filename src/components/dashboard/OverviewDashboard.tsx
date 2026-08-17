@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { UnifiedMap } from '../map/UnifiedMap';
+import { WeatherWidget } from '../weather/WeatherWidget';
+import { WeatherForecastTimeline } from '../weather/WeatherForecastTimeline';
 import { Shield, AlertTriangle, Activity, Navigation, Clock, ChevronRight, Zap, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void }> = ({ onNavigateTab }) => {
@@ -129,6 +131,10 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
 
         {/* Right Side Feed (4 Cols) */}
         <div className="lg:col-span-4 flex flex-col gap-4">
+          {/* Live Weather Intelligence Panel & 24h Timeline */}
+          <WeatherWidget onViewOnMap={() => onNavigateTab('weather')} />
+          <WeatherForecastTimeline />
+
           {/* Critical Incidents Feed */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3 flex-1">
             <div className="flex items-center justify-between">

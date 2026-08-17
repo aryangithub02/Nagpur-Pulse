@@ -86,7 +86,7 @@ class IncidentService:
         if not junction:
             raise LocationNotFoundException(f"Location with ID '{loc_str}' not found.")
 
-        inc_id = f"sim_inc_{int(datetime.utcnow().timestamp())}"
+        inc_id = f"sim_inc_{int(datetime.utcnow().timestamp())}_{junction.id}_{datetime.utcnow().microsecond}"
         inc_type = data.get("type", "ACCIDENT")
         severity = data.get("severity", "HIGH")
         desc = data.get("description") or f"SIMULATED {severity} severity {inc_type} at {junction.name}"

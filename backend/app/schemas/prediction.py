@@ -32,6 +32,8 @@ class PredictionResponse(BaseModel):
     probability: Optional[float] = Field(None, description="Prediction probability/confidence score if available")
     is_mock: Optional[bool] = Field(None, description="True if response was produced by dev mock fallback adapter")
     message: Optional[str] = Field(None, description="Status or advisory message")
+    probabilities: Optional[Dict[str, float]] = Field(None, description="Detailed 4-class probability distribution")
+    shap_explanation: Optional[List[Dict[str, Any]]] = Field(None, description="SHAP feature attribution explanations")
 
     model_config = ConfigDict(from_attributes=True)
 

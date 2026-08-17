@@ -24,9 +24,12 @@ METRICS_DIR = BASE_DIR / "metrics"
 # MODEL
 # ============================================================
 
-MODEL_PATH = MODELS_DIR / "xgboost_calibrated_v1.joblib"
+PRIMARY_MODEL_PATH = BASE_DIR / "ml" / "models" / "selected_model.pkl"
+FALLBACK_MODEL_PATH = MODELS_DIR / "xgboost_calibrated_v1.joblib"
 
-MODEL_VERSION = "traffic-risk-v1"
+MODEL_PATH = PRIMARY_MODEL_PATH if PRIMARY_MODEL_PATH.exists() else FALLBACK_MODEL_PATH
+
+MODEL_VERSION = "rf_v2_retrained" if PRIMARY_MODEL_PATH.exists() else "traffic-risk-v1"
 
 
 # ============================================================

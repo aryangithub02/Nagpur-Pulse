@@ -1,11 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { NAGPUR_JUNCTIONS } from '../../data/nagpurJunctions';
-import { AlertOctagon, Activity, Shield, ChevronRight, Zap } from 'lucide-react';
+import { getWeatherHeatmap, WeatherHeatmapPoint } from '../../services/api/weather';
+import { AlertOctagon, Activity, Shield, ChevronRight, Zap, CloudRain } from 'lucide-react';
 
 export const RiskIntelligenceView: React.FC = () => {
   const { riskData, setSelectedJunction } = useNagpurPulseStore();
+  const [weatherPoints, setWeatherPoints] = useState<WeatherHeatmapPoint[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchWeather = async () => {
+      const res = await getWeatherHeatmap();
+      if (isMounted && res.heatmap_points) {
+        setWeatherPoints(res.heatmap_points);
+      }
+    };
+    fetchWeather();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const criticalRiskCount = riskData.filter((r) => r.riskLevel === 'CRITICAL' || r.riskLevel === 'SEVERE').length;
   const highRiskCount = riskData.filter((r) => r.riskLevel === 'HIGH').length;
@@ -17,8 +33,8 @@ export const RiskIntelligenceView: React.FC = () => {
         <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-xl flex items-center justify-between">
           <div>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider">High & Critical Risk Hotspots</p>
-            <p className="text-3xl font-extrabold text-amber-400 mt-0.5">{criticalRiskCount + highRiskCount || 6}</p>
-            <span className="text-[10px] text-amber-300">Predicted by ML Model</span>
+            <p className="text-3xl font-extrabold text-amber-400 mt-0.5">{criticalRiskCount + highRiskCount}</p>
+            <span className="text-[10px] text-amber-300">ML Risk Prediction (rf_v3_weather)</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <AlertOctagon className="w-5 h-5" />
@@ -27,12 +43,12 @@ export const RiskIntelligenceView: React.FC = () => {
 
         <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-xl flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Model Prediction Interval</p>
-            <p className="text-xl font-bold text-sky-400 mt-0.5">15-min Horizon</p>
-            <span className="text-[10px] text-slate-500">Neon DB ML Engine</span>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Environment & Traffic</p>
+            <p className="text-xl font-bold text-cyan-400 mt-0.5">Weather Integrated</p>
+            <span className="text-[10px] text-slate-500">Live OpenWeather & Traffic Stream</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-            <Activity className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <CloudRain className="w-5 h-5" />
           </div>
         </div>
 
@@ -57,23 +73,20 @@ export const RiskIntelligenceView: React.FC = () => {
 
         {/* Risk Scores Roster (4 Cols) */}
         <div className="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3 font-mono">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
             <span className="font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-400" />
-              Chowk Risk Predictions
+              ML Risk & Weather Roster
             </span>
-            <span className="text-[10px] text-slate-400">Backend /api/risk</span>
+            <span className="text-[10px] text-slate-400">Combined Status</span>
           </div>
 
           <div className="space-y-2.5 overflow-y-auto max-h-[460px] pr-1">
-            {(riskData.length > 0 ? riskData : NAGPUR_JUNCTIONS.slice(0, 10).map(j => ({
-              locationId: String(j.id),
-              locationName: j.name,
-              riskLevel: j.priorityLevel === 'Critical' ? 'CRITICAL' : j.priorityLevel === 'High' ? 'HIGH' : 'MODERATE',
-              riskScore: j.priorityLevel === 'Critical' ? 0.88 : 0.65,
-              lastEvaluated: new Date().toISOString(),
-            }))).map((item) => {
+            {riskData.map((item) => {
               const color = item.riskLevel === 'CRITICAL' ? 'text-rose-400 bg-rose-500/20 border-rose-500/30' : 'text-amber-400 bg-amber-500/20 border-amber-500/30';
+              const scoreVal = item.riskScore <= 1 ? item.riskScore * 100 : item.riskScore;
+              const wPoint = weatherPoints.find((w) => w.junction_id === item.locationId);
+
               return (
                 <div
                   key={item.locationId}
@@ -81,15 +94,26 @@ export const RiskIntelligenceView: React.FC = () => {
                     const j = NAGPUR_JUNCTIONS.find((loc) => String(loc.id) === item.locationId);
                     if (j) setSelectedJunction(j);
                   }}
-                  className="p-3 bg-slate-950/70 border border-slate-800 hover:border-amber-500/40 rounded-xl flex items-center justify-between text-xs cursor-pointer transition"
+                  className="p-3 bg-slate-950/70 border border-slate-800 hover:border-amber-500/40 rounded-xl space-y-1.5 text-xs cursor-pointer transition"
                 >
-                  <div>
+                  <div className="flex items-center justify-between">
                     <div className="font-bold text-slate-200">{item.locationName}</div>
-                    <div className="text-[10px] text-slate-500">Score: {(item.riskScore * 100).toFixed(0)}%</div>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${color}`}>
+                      ML: {item.riskLevel} ({scoreVal.toFixed(0)}%)
+                    </span>
                   </div>
-                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${color}`}>
-                    {item.riskLevel}
-                  </span>
+
+                  {wPoint && (
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-900">
+                      <span className="flex items-center gap-1 text-cyan-300">
+                        <CloudRain className="w-3 h-3" />
+                        Weather Impact: <strong className="text-white">{wPoint.weather_impact_score} pts</strong> ({wPoint.weather_condition})
+                      </span>
+                      <span className="text-emerald-400 font-bold">
+                        Combined: {wPoint.combined_score}/100
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -99,3 +99,25 @@ def audit_dataframe_quality(df: pd.DataFrame, dataset_name: str = "dataset") -> 
             report["invalid_value_counts"]["invalid_dates"] += invalid_dates
 
     return report
+
+
+def audit_accident_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
+    return audit_dataframe_quality(df, dataset_name="accident_log")
+
+
+def validate_accident_record(record: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    errors: List[str] = []
+    if not record.get("junction"):
+        errors.append("Junction name is required")
+    if record.get("injuredcount", 0) < 0:
+        errors.append("Injured count cannot be negative")
+    if record.get("fatalitycount", 0) < 0:
+        errors.append("Fatality count cannot be negative")
+    source = record.get("data_source", "SIMULATED")
+    if source not in ALLOWED_DATA_SOURCES:
+        errors.append(f"Invalid data source '{source}'")
+    if not isinstance(record.get("is_simulated"), bool):
+        errors.append("is_simulated must be boolean")
+    return len(errors) == 0, errors
+
+
