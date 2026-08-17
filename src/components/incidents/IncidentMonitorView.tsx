@@ -93,15 +93,15 @@ export const IncidentMonitorView: React.FC<{
       const defaultInjuries = (inc as any).injuries ?? (isCrash && inc.severity === 'Critical' ? 1 : 0);
       const defaultImpact = inc.severity === 'Critical' ? 'CRITICAL' : inc.severity === 'Heavy' ? 'SEVERE' : 'MODERATE';
       
-      const unitAssigned = units[index % units.length];
+      const unitAssigned = units.length > 0 ? units[index % units.length] : undefined;
 
       return {
         ...inc,
         vehiclesInvolved: (inc as any).vehiclesInvolved ?? defaultVehicles,
         injuries: (inc as any).injuries ?? defaultInjuries,
         trafficImpact: defaultImpact,
-        affectedRoads: [inc.roadName, 'Wardha Main Arterial', 'Ring Road Bypass'],
-        affectedJunctions: [inc.nearestJunction?.name || inc.roadName, 'Sitabuldi Square'],
+        affectedRoads: [inc.roadName || 'Nagpur Main Road', 'Wardha Main Arterial', 'Ring Road Bypass'],
+        affectedJunctions: [inc.nearestJunction?.name || inc.roadName || 'Sitabuldi Chowk', 'Sitabuldi Square'],
         assignedUnitName: unitAssigned ? unitAssigned.callSign : 'Unassigned',
         assignedUnitId: unitAssigned ? unitAssigned.id : undefined,
         responseETA: `${String(Math.floor(4 + (index % 5))).padStart(2, '0')}:${String((index * 12) % 60).padStart(2, '0')} min`,
@@ -588,7 +588,7 @@ export const IncidentMonitorView: React.FC<{
                 <div><span className="text-slate-400">Vehicles Involved:</span> <span className="text-slate-200">{detailDrawerIncident.vehiclesInvolved}</span></div>
                 <div><span className="text-slate-400">Injuries Reported:</span> <span className="text-slate-200">{detailDrawerIncident.injuries}</span></div>
                 <div><span className="text-slate-400">Reported Time:</span> <span className="text-slate-200">{detailDrawerIncident.startTime || '14:32'}</span></div>
-                <div><span className="text-slate-400">Coordinates:</span> <span className="text-slate-300 font-mono">{detailDrawerIncident.location[0].toFixed(4)}, {detailDrawerIncident.location[1].toFixed(4)}</span></div>
+                <div><span className="text-slate-400">Coordinates:</span> <span className="text-slate-300 font-mono">{detailDrawerIncident.location && Array.isArray(detailDrawerIncident.location) && detailDrawerIncident.location.length >= 2 ? `${detailDrawerIncident.location[0].toFixed(4)}, ${detailDrawerIncident.location[1].toFixed(4)}` : '21.1458, 79.0882'}</span></div>
                 <div><span className="text-slate-400">Estimated Clearance:</span> <span className="text-amber-300 font-bold">{detailDrawerIncident.estimatedClearanceTime}</span></div>
               </div>
 
