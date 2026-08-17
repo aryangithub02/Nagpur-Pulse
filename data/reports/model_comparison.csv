@@ -1,0 +1,4 @@
+model,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,high_precision,high_recall,high_f1,critical_precision,critical_recall,critical_f1,high_critical_recall,false_negatives_high,false_negatives_critical,roc_auc,training_time,prediction_time
+DummyBaseline,0.9583,0.2396,0.25,0.2447,0.9379,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4,6,0.0,0.0149,0.0001
+RandomForest,0.9729,0.472,0.6353,0.5228,0.972,0.2727,0.75,0.4,0.0,0.0,0.0,0.3,1,6,0.9926,0.2489,0.0238
+XGBoost,0.9708,0.461,0.6348,0.5153,0.9703,0.2727,0.75,0.4,0.0,0.0,0.0,0.3,1,6,0.9931,0.4887,0.0098

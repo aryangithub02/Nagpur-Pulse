@@ -1,0 +1,22 @@
+{
+  "pipeline_version": "1.0.0",
+  "random_seed": 42,
+  "raw_records_count": 1823,
+  "clean_records_count": 2880,
+  "train_records_count": 1920,
+  "validation_records_count": 480,
+  "test_records_count": 480,
+  "tomtom_live_interface": {
+    "status": "PENDING_LIVE_INTEGRATION",
+    "api_endpoint": "https://api.tomtom.com/traffic/services/4/flowSegmentData",
+    "schema_fields": {
+      "current_speed_kmh": "float",
+      "free_flow_speed_kmh": "float",
+      "current_travel_time_seconds": "int",
+      "free_flow_travel_time_seconds": "int",
+      "confidence_ratio": "float",
+      "road_closure_status": "bool"
+    },
+    "fallback_strategy": "Impute missing live values with historical junction median speed"
+  }
+}

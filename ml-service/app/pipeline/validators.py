@@ -1,116 +1,101 @@
 """
-Data pipeline validators.
+Comprehensive Data Quality Validator for Nagpur Pulse ML Service.
+Audits datasets for missing values, duplicates, invalid numerical values,
+impossible coordinates, and date/timestamp errors.
 """
 
 from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
+# Geographical bounding box for Nagpur City
+NAGPUR_LAT_MIN = 21.00
+NAGPUR_LAT_MAX = 21.30
+NAGPUR_LON_MIN = 79.00
+NAGPUR_LON_MAX = 79.30
+
 ALLOWED_DATA_SOURCES = {"SIMULATED", "HISTORICAL", "EXTERNAL"}
-REQUIRED_ACCIDENT_COLUMNS = [
-    "accidentid",
-    "date",
-    "junction",
-    "severity",
-    "injuredcount",
-    "fatalitycount",
-    "vehiclesinvolved",
-    "data_source",
-    "is_simulated",
-]
 
-def validate_accident_record(record: Dict[str, Any]) -> Tuple[bool, List[str]]:
+
+def validate_coordinates(lat: float, lon: float) -> bool:
     """
-    Validate a single accident record dictionary.
-    Returns (is_valid, list_of_errors).
+    Check whether lat/lon coordinates fall within valid Nagpur geographical bounds.
     """
-    errors = []
+    if pd.isna(lat) or pd.isna(lon):
+        return False
+    try:
+        lat_f = float(lat)
+        lon_f = float(lon)
+        return (NAGPUR_LAT_MIN <= lat_f <= NAGPUR_LAT_MAX) and (NAGPUR_LON_MIN <= lon_f <= NAGPUR_LON_MAX)
+    except (ValueError, TypeError):
+        return False
 
-    # Check required fields
-    for col in ["accidentid", "date", "junction", "severity"]:
-        if col not in record or record[col] is None or str(record[col]).strip() == "":
-            errors.append(f"Missing required field: '{col}'")
 
-    # Validate provenance
-    source = record.get("data_source")
-    if source not in ALLOWED_DATA_SOURCES:
-        errors.append(f"Invalid data_source '{source}'. Allowed: {ALLOWED_DATA_SOURCES}")
-
-    if not isinstance(record.get("is_simulated"), bool):
-        errors.append("Field 'is_simulated' must be a boolean.")
-
-    # Validate non-negative numbers
-    for num_col in ["injuredcount", "fatalitycount", "vehiclesinvolved"]:
-        if num_col in record:
-            val = record[num_col]
-            if isinstance(val, bool):
-                errors.append(f"Invalid numeric value for '{num_col}': {val}")
-                continue
-            try:
-                num = float(val)
-                if not np.isfinite(num):
-                    errors.append(f"Non-finite value for '{num_col}': {val}")
-                elif num < 0:
-                    errors.append(f"Negative count for '{num_col}': {num}")
-            except (ValueError, TypeError):
-                errors.append(f"Invalid numeric value for '{num_col}': {val}")
-
-    return len(errors) == 0, errors
-
-def audit_accident_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
+def audit_dataframe_quality(df: pd.DataFrame, dataset_name: str = "dataset") -> Dict[str, Any]:
     """
-    Generate a comprehensive data quality audit report for an accident DataFrame.
+    Generate a detailed data-quality report for any input pandas DataFrame.
     """
     report: Dict[str, Any] = {
-        "total_records": len(df),
-        "valid_records": 0,
-        "invalid_records": 0,
-        "duplicate_records": 0,
-        "missing_values": {},
-        "invalid_dates": 0,
-        "invalid_numeric_values": 0,
-        "data_source_distribution": {},
-        "errors": []
+        "dataset_name": dataset_name,
+        "total_rows": len(df),
+        "total_columns": len(df.columns),
+        "columns": list(df.columns),
+        "missing_value_counts": {},
+        "duplicate_rows_count": 0,
+        "categorical_uniques": {},
+        "numerical_summary": {},
+        "invalid_value_counts": {
+            "negative_counts": 0,
+            "negative_speeds": 0,
+            "invalid_dates": 0,
+            "invalid_coordinates": 0,
+        },
     }
 
     if df.empty:
         return report
 
-    # Duplicate accident IDs
-    if "accidentid" in df.columns:
-        report["duplicate_records"] = int(df.duplicated(subset=["accidentid"]).sum())
+    # 1. Duplicates check
+    report["duplicate_rows_count"] = int(df.duplicated().sum())
 
-    # Missing values per column
+    # 2. Missing values per column
     for col in df.columns:
-        missing_count = int(df[col].isna().sum())
-        if missing_count > 0:
-            report["missing_values"][col] = missing_count
+        missing_cnt = int(df[col].isna().sum())
+        if missing_cnt > 0:
+            report["missing_value_counts"][col] = missing_cnt
 
-    # Data source distribution
-    if "data_source" in df.columns:
-        dist = df["data_source"].value_counts().to_dict()
-        report["data_source_distribution"] = {str(k): int(v) for k, v in dist.items()}
+    # 3. Categorical uniques and Numerical summary
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            report["numerical_summary"][col] = {
+                "min": float(df[col].min()) if not df[col].empty and not df[col].dropna().empty else None,
+                "max": float(df[col].max()) if not df[col].empty and not df[col].dropna().empty else None,
+                "mean": float(df[col].mean()) if not df[col].empty and not df[col].dropna().empty else None,
+            }
+            # Impossible negative numerical checks
+            neg_count = int((df[col] < 0).sum())
+            if neg_count > 0:
+                report["invalid_value_counts"]["negative_counts"] += neg_count
+        else:
+            uniques = df[col].dropna().unique()
+            if len(uniques) <= 30:
+                report["categorical_uniques"][col] = [str(x) for x in uniques]
+            else:
+                report["categorical_uniques"][col] = f"{len(uniques)} unique values"
 
-    # Check dates
-    if "date" in df.columns:
-        invalid_dates = df["date"].isna().sum()
-        report["invalid_dates"] = int(invalid_dates)
+    # 4. Check coordinates if present
+    if "latitude" in df.columns and "longitude" in df.columns:
+        invalid_coords = 0
+        for lat, lon in zip(df["latitude"], df["longitude"]):
+            if not validate_coordinates(lat, lon):
+                invalid_coords += 1
+        report["invalid_value_counts"]["invalid_coordinates"] = invalid_coords
 
-    # Check negative numeric values
-    num_errors = 0
-    for col in ["injuredcount", "fatalitycount", "vehiclesinvolved"]:
-        if col in df.columns:
-            invalid_num = ((df[col] < 0) | (~np.isfinite(df[col]))).sum()
-            num_errors += int(invalid_num)
-    report["invalid_numeric_values"] = num_errors
-
-    # Valid vs Invalid row counts
-    critical_subset = [c for c in ["accidentid", "date", "junction"] if c in df.columns]
-    valid_mask = df[critical_subset].notna().all(axis=1) if critical_subset else pd.Series(True, index=df.index)
-    if "date" in df.columns:
-        valid_mask &= df["date"].notna()
-
-    report["valid_records"] = int(valid_mask.sum())
-    report["invalid_records"] = len(df) - report["valid_records"]
+    # 5. Check date parsing if present
+    for date_col in ["date", "Date", "observation_date", "period_date"]:
+        if date_col in df.columns:
+            parsed = pd.to_datetime(df[date_col], errors="coerce")
+            invalid_dates = int(parsed.isna().sum())
+            report["invalid_value_counts"]["invalid_dates"] += invalid_dates
 
     return report

@@ -1,0 +1,35 @@
+{
+  "target_variable": "traffic_risk",
+  "classes": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ],
+  "total_samples": 2880,
+  "train_distribution": {
+    "LOW": 1872,
+    "MEDIUM": 32,
+    "HIGH": 13,
+    "CRITICAL": 3
+  },
+  "train_percentages": {
+    "LOW": 97.5,
+    "MEDIUM": 1.67,
+    "HIGH": 0.68,
+    "CRITICAL": 0.16
+  },
+  "validation_distribution": {
+    "LOW": 464,
+    "MEDIUM": 5,
+    "HIGH": 7,
+    "CRITICAL": 4
+  },
+  "test_distribution": {
+    "LOW": 460,
+    "MEDIUM": 10,
+    "HIGH": 4,
+    "CRITICAL": 6
+  },
+  "imbalance_warning": "Severe class imbalance detected. LOW represents >97% of training data. Sample/class weighting applied."
+}

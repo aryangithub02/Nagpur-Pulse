@@ -1,0 +1,11 @@
+{
+  "removed_columns_count": 2,
+  "removed_columns": [
+    "total_injured",
+    "total_fatalities"
+  ],
+  "rationale": {
+    "total_injured": "Aggregated post-accident outcome.",
+    "total_fatalities": "Aggregated post-accident outcome."
+  }
+}

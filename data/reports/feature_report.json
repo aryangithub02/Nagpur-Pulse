@@ -1,0 +1,35 @@
+{
+  "total_original_features": 16,
+  "total_engineered_features": 30,
+  "train_feature_shape": [
+    1920,
+    34
+  ],
+  "validation_feature_shape": [
+    480,
+    34
+  ],
+  "test_feature_shape": [
+    480,
+    34
+  ],
+  "schema_consistency_passed": true,
+  "data_leakage_detected": [],
+  "top_15_candidate_features": [
+    "year",
+    "month",
+    "total_accidents",
+    "fatal_accidents",
+    "injury_accidents",
+    "accidents_7d",
+    "accidents_30d",
+    "accidents_90d",
+    "accidents_1y",
+    "fatal_accidents_1y",
+    "injury_accidents_1y",
+    "historical_accident_rate",
+    "quarter",
+    "is_year_start",
+    "month_sin"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "junction": "str",
+  "year": "int64",
+  "month": "int64",
+  "total_accidents": "int64",
+  "fatal_accidents": "int64",
+  "injury_accidents": "int64",
+  "accidents_7d": "float64",
+  "accidents_30d": "float64",
+  "accidents_90d": "float64",
+  "accidents_1y": "float64",
+  "fatal_accidents_1y": "float64",
+  "injury_accidents_1y": "float64",
+  "historical_accident_rate": "float64"
+}

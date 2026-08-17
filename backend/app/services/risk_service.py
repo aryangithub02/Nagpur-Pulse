@@ -52,23 +52,31 @@ class RiskService:
                     is_mock = default_ml_cache.is_mock
                     eval_time = datetime.utcnow()
 
-                level = "MODERATE"
-                try:
-                    numeric_pred = float(pred_val)
-                    if numeric_pred >= 2:
-                        level = "HIGH"
-                    elif numeric_pred == 1:
-                        level = "MODERATE"
-                    else:
+                level = "LOW"
+                raw_str = str(pred_val).upper()
+                if raw_str in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]:
+                    level = raw_str
+                else:
+                    try:
+                        numeric_pred = float(pred_val)
+                        if numeric_pred >= 3:
+                            level = "CRITICAL"
+                        elif numeric_pred == 2:
+                            level = "HIGH"
+                        elif numeric_pred == 1:
+                            level = "MEDIUM"
+                        else:
+                            level = "LOW"
+                    except (ValueError, TypeError):
                         level = "LOW"
-                except (ValueError, TypeError):
-                    level = str(pred_val).upper()
+
+                risk_score_val = prob if prob is not None else (70.0 if level == "HIGH" else 100.0 if level == "CRITICAL" else 35.0 if level == "MEDIUM" else 15.0)
 
                 risk_items.append({
                     "locationId": str(j.id),
                     "locationName": j.name,
                     "riskLevel": level,
-                    "riskScore": prob if prob is not None else 0.75,
+                    "riskScore": risk_score_val,
                     "prediction": pred_val,
                     "isMock": is_mock,
                     "lastEvaluated": eval_time
@@ -110,23 +118,31 @@ class RiskService:
             is_mock = ml_res.is_mock
             eval_time = datetime.utcnow()
 
-        level = "MODERATE"
-        try:
-            numeric_pred = float(pred_val)
-            if numeric_pred >= 2:
-                level = "HIGH"
-            elif numeric_pred == 1:
-                level = "MODERATE"
-            else:
+        level = "LOW"
+        raw_str = str(pred_val).upper()
+        if raw_str in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]:
+            level = raw_str
+        else:
+            try:
+                numeric_pred = float(pred_val)
+                if numeric_pred >= 3:
+                    level = "CRITICAL"
+                elif numeric_pred == 2:
+                    level = "HIGH"
+                elif numeric_pred == 1:
+                    level = "MEDIUM"
+                else:
+                    level = "LOW"
+            except (ValueError, TypeError):
                 level = "LOW"
-        except (ValueError, TypeError):
-            level = str(pred_val).upper()
+
+        risk_score_val = prob if prob is not None else (70.0 if level == "HIGH" else 100.0 if level == "CRITICAL" else 35.0 if level == "MEDIUM" else 15.0)
 
         return {
             "locationId": str(junction.id),
             "locationName": junction.name,
             "riskLevel": level,
-            "riskScore": prob if prob is not None else 0.75,
+            "riskScore": risk_score_val,
             "prediction": pred_val,
             "isMock": is_mock,
             "lastEvaluated": eval_time

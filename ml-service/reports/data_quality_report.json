@@ -1,0 +1,94 @@
+{
+  "dataset_name": "raw_accidents",
+  "total_rows": 1823,
+  "total_columns": 13,
+  "columns": [
+    "AccidentID",
+    "Date",
+    "Year",
+    "Time",
+    "Junction",
+    "Severity",
+    "PrimaryVehicleType",
+    "ProbableCause",
+    "WeatherCondition",
+    "InjuredCount",
+    "FatalityCount",
+    "VehiclesInvolved",
+    "PoliceCaseRegistered"
+  ],
+  "missing_value_counts": {},
+  "duplicate_rows_count": 0,
+  "categorical_uniques": {
+    "AccidentID": "1823 unique values",
+    "Date": "1219 unique values",
+    "Time": "914 unique values",
+    "Junction": "40 unique values",
+    "Severity": [
+      "Severe",
+      "Minor",
+      "Moderate",
+      "Fatal"
+    ],
+    "PrimaryVehicleType": [
+      "Car",
+      "Bicycle",
+      "Truck",
+      "Bus",
+      "Motorcycle",
+      "Auto-Rickshaw",
+      "Pedestrian-involved"
+    ],
+    "ProbableCause": [
+      "Poor Visibility (Fog/Rain)",
+      "Overspeeding",
+      "Brake Failure",
+      "Distracted Driving",
+      "Drunk Driving",
+      "Signal Jumping",
+      "Pedestrian Crossing Violation",
+      "Lane Violation",
+      "Pothole/Road Defect",
+      "Wrong-side Driving"
+    ],
+    "WeatherCondition": [
+      "Clear",
+      "Foggy",
+      "Hot/Humid",
+      "Rainy",
+      "Overcast"
+    ],
+    "PoliceCaseRegistered": [
+      "No",
+      "Yes"
+    ]
+  },
+  "numerical_summary": {
+    "Year": {
+      "min": 2020.0,
+      "max": 2025.0,
+      "mean": 2022.970378496983
+    },
+    "InjuredCount": {
+      "min": 0.0,
+      "max": 5.0,
+      "mean": 1.3889193636862316
+    },
+    "FatalityCount": {
+      "min": 0.0,
+      "max": 2.0,
+      "mean": 0.05979155238617663
+    },
+    "VehiclesInvolved": {
+      "min": 1.0,
+      "max": 4.0,
+      "mean": 2.523861766319254
+    }
+  },
+  "invalid_value_counts": {
+    "negative_counts": 0,
+    "negative_speeds": 0,
+    "invalid_dates": 0,
+    "invalid_coordinates": 0
+  }
+}

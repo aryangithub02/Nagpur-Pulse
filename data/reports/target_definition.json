@@ -1,0 +1,20 @@
+{
+  "target_variable": "traffic_risk",
+  "target_classes": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ],
+  "class_distribution": {
+    "LOW": 2796,
+    "MEDIUM": 47,
+    "HIGH": 24,
+    "CRITICAL": 13
+  },
+  "numerical_risk_stats": {
+    "min": 0.0,
+    "max": 100.0,
+    "mean": 2.2818888888888886
+  }
+}

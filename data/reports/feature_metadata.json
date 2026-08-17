@@ -1,0 +1,212 @@
+[
+  {
+    "feature_name": "year",
+    "data_type": "int64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "month",
+    "data_type": "int64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "total_accidents",
+    "data_type": "int64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "fatal_accidents",
+    "data_type": "int64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "injury_accidents",
+    "data_type": "int64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_7d",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_30d",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_90d",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_1y",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "fatal_accidents_1y",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "injury_accidents_1y",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "historical_accident_rate",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "quarter",
+    "data_type": "int64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "is_year_start",
+    "data_type": "int64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "month_sin",
+    "data_type": "float64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "month_cos",
+    "data_type": "float64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "day_of_week",
+    "data_type": "int64",
+    "category": "traffic",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "dow_sin",
+    "data_type": "float64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "dow_cos",
+    "data_type": "float64",
+    "category": "temporal",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "weekend_indicator",
+    "data_type": "int64",
+    "category": "traffic",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_lag_1",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_lag_2",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_lag_3",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_rolling_mean_3",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_rolling_std_3",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_rolling_mean_6",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_rolling_std_6",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "accidents_trend_3_12",
+    "data_type": "float64",
+    "category": "historical_incident",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "junction_target_enc",
+    "data_type": "float64",
+    "category": "categorical",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  },
+  {
+    "feature_name": "junction_ordinal_enc",
+    "data_type": "int64",
+    "category": "categorical",
+    "uses_future_data": false,
+    "missing_percentage": 0.0
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "strategy": "Chronological Time-Series Split",
+  "train_shape": [
+    1920,
+    16
+  ],
+  "validation_shape": [
+    480,
+    16
+  ],
+  "test_shape": [
+    480,
+    16
+  ],
+  "boundaries": {
+    "train_period": "2020-01-01 to 2023-12-01",
+    "validation_period": "2024-01-01 to 2024-12-01",
+    "test_period": "2025-01-01 to 2025-12-01"
+  }
+}
