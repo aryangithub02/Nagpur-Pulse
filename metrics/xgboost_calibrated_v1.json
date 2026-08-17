@@ -1,0 +1,157 @@
+{
+    "project": "NAGPUR PULSE",
+    "model_name": "XGBoost",
+    "model_version": "traffic-risk-xgboost-calibrated-v1",
+    "base_model": "xgboost_v1",
+    "calibration": {
+        "method": "sigmoid",
+        "folds": 5,
+        "training_data_only": true
+    },
+    "features": [
+        "accidents_7d",
+        "accidents_30d",
+        "accidents_90d",
+        "accidents_1y",
+        "fatal_accidents_1y",
+        "injury_accidents_1y",
+        "historical_accident_rate",
+        "junction"
+    ],
+    "target": "risk_level",
+    "target_classes": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+    ],
+    "label_encoding": {
+        "LOW": 0,
+        "MEDIUM": 1,
+        "HIGH": 2
+    },
+    "train_rows": 533,
+    "test_rows": 255,
+    "random_state": 42,
+    "metrics": {
+        "accuracy": 0.47843137254901963,
+        "precision_weighted": 0.36030412164865944,
+        "recall_weighted": 0.47843137254901963,
+        "f1_weighted": 0.33400311409298056,
+        "high_risk_precision": 0.4,
+        "high_risk_recall": 0.047619047619047616,
+        "high_risk_f1": 0.0851063829787234
+    },
+    "confusion_matrix": [
+        [
+            118,
+            0,
+            3
+        ],
+        [
+            47,
+            0,
+            3
+        ],
+        [
+            80,
+            0,
+            4
+        ]
+    ],
+    "confidence_threshold": 0.5,
+    "high_risk_precision_target": 0.9,
+    "high_risk_precision_target_status": "NOT_ACHIEVED",
+    "threshold_analysis": [
+        {
+            "threshold": 0.5,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 151,
+            "uncertain_rate": 0.592156862745098,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.55,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 248,
+            "uncertain_rate": 0.9725490196078431,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.6,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.65,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.7,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.75,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.8,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.85,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.9,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        },
+        {
+            "threshold": 0.95,
+            "high_risk_precision": 0.0,
+            "high_risk_recall": 0.0,
+            "uncertain_count": 255,
+            "uncertain_rate": 1.0,
+            "high_prediction_count": 0
+        }
+    ],
+    "uncertain_prediction_rule": "If maximum class probability is below confidence_threshold, return UNCERTAIN.",
+    "data_leakage_policy": {
+        "final_test_used_for_calibration": false,
+        "final_test_used_only_for_evaluation": true
+    },
+    "limitations": [
+        "Dataset is synthetic/simulated.",
+        "Current model uses primarily historical accident features.",
+        "The HIGH-risk precision target of 90% must be validated on representative real-world data before production use.",
+        "UNCERTAIN is an output state and is not a training class."
+    ]
+}

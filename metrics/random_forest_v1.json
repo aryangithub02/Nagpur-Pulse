@@ -1,0 +1,97 @@
+{
+    "model": "RandomForest",
+    "model_version": "random-forest-v1",
+    "cross_validation": {
+        "accuracy": {
+            "mean": 0.3658437665314759,
+            "std": 0.021112889956203366,
+            "fold_scores": [
+                0.40186915887850466,
+                0.35514018691588783,
+                0.34579439252336447,
+                0.37735849056603776,
+                0.3490566037735849
+            ]
+        },
+        "precision_weighted": {
+            "mean": 0.3701414046950323,
+            "std": 0.01827559460557576,
+            "fold_scores": [
+                0.3973829701162778,
+                0.35459240710101503,
+                0.3518073641777214,
+                0.38626684636118597,
+                0.3606574357189616
+            ]
+        },
+        "recall_weighted": {
+            "mean": 0.3658437665314759,
+            "std": 0.021112889956203366,
+            "fold_scores": [
+                0.40186915887850466,
+                0.35514018691588783,
+                0.34579439252336447,
+                0.37735849056603776,
+                0.3490566037735849
+            ]
+        },
+        "f1_weighted": {
+            "mean": 0.3651688041036061,
+            "std": 0.021766108888245997,
+            "fold_scores": [
+                0.39896925504402136,
+                0.3526251630702111,
+                0.33896909878910897,
+                0.38124840010999206,
+                0.35403210350469694
+            ]
+        }
+    },
+    "test_metrics": {
+        "model": "RandomForest",
+        "model_version": "random-forest-v1",
+        "target": "risk_level",
+        "classes": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+        ],
+        "test_rows": 255,
+        "accuracy": 0.4196078431372549,
+        "weighted_precision": 0.41380308957528344,
+        "weighted_recall": 0.4196078431372549,
+        "weighted_f1": 0.4161725490196078,
+        "high_precision": 0.34210526315789475,
+        "high_recall": 0.30952380952380953,
+        "high_f1": 0.325,
+        "high_precision_target": 0.9,
+        "high_precision_target_passed": false,
+        "confusion_matrix": [
+            [
+                68,
+                20,
+                33
+            ],
+            [
+                20,
+                13,
+                17
+            ],
+            [
+                41,
+                17,
+                26
+            ]
+        ],
+        "features": [
+            "accidents_7d",
+            "accidents_30d",
+            "accidents_90d",
+            "accidents_1y",
+            "fatal_accidents_1y",
+            "injury_accidents_1y",
+            "historical_accident_rate",
+            "junction"
+        ]
+    }
+}

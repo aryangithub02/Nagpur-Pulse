@@ -1,0 +1,30 @@
+{
+  "city": "Nagpur",
+  "state": "Maharashtra",
+  "country": "India",
+  "coordinate_system": "WGS84 decimal degrees",
+  "source": "OpenStreetMap/Nominatim and public map references",
+  "notes": "Coordinates marked approximate should be verified on a live map before precise navigation, surveying, or emergency-use applications.",
+  "junctions": [
+    {"id": 1, "name": "LIC Chowk", "latitude": 21.1556187, "longitude": 79.0817574, "approximate": false, "source": "Nominatim: LIC Square"},
+    {"id": 2, "name": "Lokmat Chowk", "latitude": 21.1354806, "longitude": 79.0780286, "approximate": false, "source": "Public map search result for Lokmat Square"},
+    {"id": 3, "name": "Gaddi Godam Chowk", "latitude": 21.1616305, "longitude": 79.0837250, "approximate": false, "source": "Nominatim: Gaddi Godam Square"},
+    {"id": 4, "name": "Kadbi Chowk", "latitude": 21.1548700, "longitude": 79.0813900, "approximate": true, "source": "Public map reference near Kasturchand Park / Kadvi Chowk"},
+    {"id": 5, "name": "Golibar Chowk", "latitude": 21.1614000, "longitude": 79.1059000, "approximate": true, "source": "Approximate locality/junction coordinate"},
+    {"id": 6, "name": "Indora Chowk", "latitude": 21.1736873, "longitude": 79.1007283, "approximate": false, "source": "Nominatim: Indora Square"},
+    {"id": 7, "name": "Mental Hospital Chowk", "latitude": 21.1755960, "longitude": 79.0785247, "approximate": false, "source": "Nominatim: Pagal Khana Square / Regional Mental Hospital"},
+    {"id": 8, "name": "Vaishnodevi Chowk", "latitude": 21.1480272, "longitude": 79.1364057, "approximate": false, "source": "Nominatim: Vaishnodevi Square"},
+    {"id": 9, "name": "Bardi Chowk", "latitude": 21.1466000, "longitude": 79.0855000, "approximate": true, "source": "Approximate Bardi/Sitabuldi area coordinate"},
+    {"id": 10, "name": "Kasturchand Park Square", "latitude": 21.1550000, "longitude": 79.0813900, "approximate": false, "source": "Public reference: Kasturchand Park metro station"},
+    {"id": 11, "name": "Airport T-Point", "latitude": 21.1030000, "longitude": 79.0840000, "approximate": true, "source": "Approximate airport-road T-point coordinate"},
+    {"id": 12, "name": "Automotive Square", "latitude": 21.1857923, "longitude": 79.1195065, "approximate": false, "source": "Nominatim: Automotive Square"},
+    {"id": 13, "name": "Laxmi Nagar Square", "latitude": 21.1254686, "longitude": 79.0639778, "approximate": false, "source": "Nominatim: Laxmi Nagar Square"},
+    {"id": 14, "name": "Shraddhanand Peth Square", "latitude": 21.1254292, "longitude": 79.0593904, "approximate": true, "source": "OSM address reference for Shraddhanand Peth Square"},
+    {"id": 15, "name": "Shankar Nagar Square", "latitude": 21.1362125, "longitude": 79.0616442, "approximate": false, "source": "Nominatim: Shankar Nagar Square"},
+    {"id": 16, "name": "Ajit Bakery Square", "latitude": 21.1290000, "longitude": 79.0640000, "approximate": true, "source": "Approximate local junction coordinate"},
+    {"id": 17, "name": "Abhyankar Nagar Square", "latitude": 21.1270000, "longitude": 79.0610000, "approximate": true, "source": "Approximate Abhyankar Nagar junction coordinate"},
+    {"id": 18, "name": "Alankar Square", "latitude": 21.1285000, "longitude": 79.0565000, "approximate": true, "source": "Approximate local junction coordinate"},
+    {"id": 19, "name": "LAD Square", "latitude": 21.1310000, "longitude": 79.0515000, "approximate": true, "source": "Approximate local junction coordinate"},
+    {"id": 20, "name": "Kachipura Square", "latitude": 21.1335000, "longitude": 79.0670000, "approximate": true, "source": "Approximate local junction coordinate"}
+  ]
+}

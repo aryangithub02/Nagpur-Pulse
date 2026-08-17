@@ -1,0 +1,116 @@
+{
+    "model_name": "XGBoost",
+    "model_version": "traffic-risk-xgb-v1",
+    "random_state": 42,
+    "features": [
+        "accidents_7d",
+        "accidents_30d",
+        "accidents_90d",
+        "accidents_1y",
+        "fatal_accidents_1y",
+        "injury_accidents_1y",
+        "historical_accident_rate",
+        "junction"
+    ],
+    "numeric_features": [
+        "accidents_7d",
+        "accidents_30d",
+        "accidents_90d",
+        "accidents_1y",
+        "fatal_accidents_1y",
+        "injury_accidents_1y",
+        "historical_accident_rate"
+    ],
+    "categorical_features": [
+        "junction"
+    ],
+    "target": "risk_level",
+    "target_classes": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+    ],
+    "cross_validation": {
+        "accuracy": {
+            "mean": 0.45388820313877626,
+            "std": 0.04386335220420058,
+            "train_mean": 0.7237380567558356
+        },
+        "precision_weighted": {
+            "mean": 0.4184688834516148,
+            "std": 0.03969296039895514,
+            "train_mean": 0.7425452569409212
+        },
+        "recall_weighted": {
+            "mean": 0.45388820313877626,
+            "std": 0.04386335220420058,
+            "train_mean": 0.7237380567558356
+        },
+        "f1_weighted": {
+            "mean": 0.42222929741461057,
+            "std": 0.0393176683372883,
+            "train_mean": 0.7101635366937662
+        }
+    },
+    "test_metrics": {
+        "accuracy": 0.47058823529411764,
+        "weighted_precision": 0.4472095581321414,
+        "weighted_recall": 0.47058823529411764,
+        "weighted_f1": 0.44934852651512863,
+        "high_precision": 0.40350877192982454,
+        "high_recall": 0.27380952380952384,
+        "high_f1": 0.3262411347517731,
+        "high_precision_target": 0.9,
+        "high_precision_target_achieved": false,
+        "classification_report": {
+            "LOW": {
+                "precision": 0.5414012738853503,
+                "recall": 0.7024793388429752,
+                "f1-score": 0.6115107913669064,
+                "support": 121.0
+            },
+            "MEDIUM": {
+                "precision": 0.2926829268292683,
+                "recall": 0.24,
+                "f1-score": 0.26373626373626374,
+                "support": 50.0
+            },
+            "HIGH": {
+                "precision": 0.40350877192982454,
+                "recall": 0.27380952380952384,
+                "f1-score": 0.3262411347517731,
+                "support": 84.0
+            },
+            "accuracy": 0.47058823529411764,
+            "macro avg": {
+                "precision": 0.412530990881481,
+                "recall": 0.40542962088416634,
+                "f1-score": 0.40049606328498105,
+                "support": 255.0
+            },
+            "weighted avg": {
+                "precision": 0.4472095581321414,
+                "recall": 0.47058823529411764,
+                "f1-score": 0.44934852651512863,
+                "support": 255.0
+            }
+        },
+        "confusion_matrix": [
+            [
+                85,
+                15,
+                21
+            ],
+            [
+                25,
+                12,
+                13
+            ],
+            [
+                47,
+                14,
+                23
+            ]
+        ]
+    }
+}

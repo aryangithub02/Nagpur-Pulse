@@ -1,0 +1,48 @@
+{
+    "model": "LogisticRegression",
+    "model_version": "baseline-v1",
+    "target": "risk_level",
+    "classes": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+    ],
+    "random_state": 42,
+    "test_rows": 255,
+    "accuracy": 0.4,
+    "weighted_precision": 0.44173638414916044,
+    "weighted_recall": 0.4,
+    "weighted_f1": 0.41039924152275076,
+    "high_precision": 0.3283582089552239,
+    "high_recall": 0.2619047619047619,
+    "high_f1": 0.2913907284768212,
+    "high_precision_target": 0.9,
+    "high_precision_target_passed": false,
+    "confusion_matrix": [
+        [
+            58,
+            34,
+            29
+        ],
+        [
+            12,
+            22,
+            16
+        ],
+        [
+            26,
+            36,
+            22
+        ]
+    ],
+    "features": [
+        "accidents_7d",
+        "accidents_30d",
+        "accidents_90d",
+        "accidents_1y",
+        "fatal_accidents_1y",
+        "injury_accidents_1y",
+        "historical_accident_rate",
+        "junction"
+    ]
+}
