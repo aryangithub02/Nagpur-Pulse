@@ -86,8 +86,10 @@ function generateRealisticNagpurMetrics(lat: number, lng: number, streetName?: s
   };
 }
 
+let isTomTomForbidden = false;
+
 /**
- * Fetches real-time Traffic Flow Segment Data from TomTom API for a lat/lng point
+ * Fetches Live Traffic Flow Segment Data from TomTom API for a specific coordinate
  */
 export async function fetchTrafficFlowForPoint(
   latitude: number,
@@ -102,8 +104,14 @@ export async function fetchTrafficFlowForPoint(
     return cached.metrics;
   }
 
+  if (isTomTomForbidden) {
+    const fallback = generateRealisticNagpurMetrics(latitude, longitude, streetName);
+    memoryCache.set(cacheKey, { timestamp: Date.now(), metrics: fallback });
+    return fallback;
+  }
+
   const key = apiKey || getTomTomApiKey();
-  const url = `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/15/json?key=${encodeURIComponent(
+  const url = `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?key=${encodeURIComponent(
     key
   )}&point=${latitude},${longitude}&unit=kmph`;
 
@@ -114,6 +122,9 @@ export async function fetchTrafficFlowForPoint(
     });
 
     if (!response.ok) {
+      if (response.status === 403 || response.status === 401) {
+        isTomTomForbidden = true;
+      }
       const fallback = generateRealisticNagpurMetrics(latitude, longitude, streetName);
       memoryCache.set(cacheKey, { timestamp: Date.now(), metrics: fallback });
       return fallback;
@@ -189,6 +200,7 @@ export async function batchFetchJunctionTraffic(
  * BBox: 78.90, 20.99, 79.20, 21.25 (Nagpur Metropolitan Area)
  */
 export async function fetchTomTomIncidents(apiKey?: string): Promise<IncidentItem[]> {
+  if (isTomTomForbidden) return [];
   const key = apiKey || getTomTomApiKey();
   const bbox = '78.90,20.99,79.20,21.25';
   const url = `https://api.tomtom.com/traffic/services/5/incidentDetails?key=${encodeURIComponent(
@@ -197,7 +209,12 @@ export async function fetchTomTomIncidents(apiKey?: string): Promise<IncidentIte
 
   try {
     const res = await fetch(url);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        isTomTomForbidden = true;
+      }
+      return [];
+    }
 
     const data = await res.json();
     const poiList = data?.incidents || [];

@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
-from sqlalchemy import String, Float, Boolean, ForeignKey, DateTime, func
+from sqlalchemy import String, Float, Boolean, ForeignKey, DateTime, func, JSON
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
+
+JSONType = JSONB().with_variant(JSON, "sqlite")
 
 
 class Prediction(Base):
@@ -20,7 +22,7 @@ class Prediction(Base):
     prediction: Mapped[str] = mapped_column(String(255), nullable=False)
     probability: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     is_mock: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True, default=False)
-    features_used: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    features_used: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONType, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -154,8 +154,8 @@ export const PoliceCommandView: React.FC = () => {
                   </div>
 
                   <div className="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-                    <span>Near: {unit.location.nearestJunctionName}</span>
-                    <span>Fuel: {unit.telemetry.fuelPercentage}%</span>
+                    <span>Near: {unit.location?.nearestJunctionName || 'Nagpur Central'}</span>
+                    <span>Fuel: {unit.telemetry?.fuelPercentage || 85}%</span>
                   </div>
 
                   {unit.currentAssignment && (

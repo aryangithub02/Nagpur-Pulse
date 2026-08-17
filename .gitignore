@@ -37,6 +37,10 @@ env/
 env.bak/
 venv.bak/
 
+# Database Files
+*.db
+backend/*.db
+
 # Environment Variables
 backend/.env
 .env

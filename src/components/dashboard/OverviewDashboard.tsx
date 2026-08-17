@@ -204,7 +204,7 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
                 >
                   <div>
                     <div className="font-bold text-slate-200">{unit.callSign}</div>
-                    <div className="text-[10px] text-slate-400">{unit.location.nearestJunctionName}</div>
+                    <div className="text-[10px] text-slate-400">{unit.location?.nearestJunctionName || 'Nagpur Sector'}</div>
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     {unit.availability}

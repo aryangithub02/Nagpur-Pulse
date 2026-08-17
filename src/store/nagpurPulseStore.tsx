@@ -5,13 +5,14 @@ import { JunctionTrafficState, CitySummary, TrafficMetrics } from '../types/traf
 import { NAGPUR_JUNCTIONS } from '../data/nagpurJunctions';
 import { fetchPoliceUnits } from '../services/api/police';
 import { fetchIncidents, simulateIncident as apiSimulateIncident } from '../services/api/incidents';
-import { fetchTrafficObservations } from '../services/api/traffic';
+import { fetchTrafficObservations, fetchLocations } from '../services/api/traffic';
 import { fetchAllRiskPredictions } from '../services/api/risk';
 import { fetchCoverage } from '../services/api/coverage';
 import { calculateUnitRoute } from '../services/api/routing';
 import { moveTowardsTarget, findNearestJunction, calculateBearingDegrees } from '../utils/geoUtils';
 import { soundFX } from '../utils/audioEffects';
 import { batchFetchJunctionTraffic, fetchTomTomIncidents, calculateTomTomRoute } from '../services/tomtomService';
+import { requestPrediction, fetchRecommendations, acceptRecommendation, rejectRecommendation, RecommendationItemBackend } from '../services/api/predict';
 
 // Initial realistic Nagpur Police Fleet
 const INITIAL_FLEET: PoliceUnit[] = [
@@ -254,6 +255,12 @@ interface NagpurPulseStoreContextType {
   // Active Route Polyline
   activeRoutePolyline: [number, number][];
   activeRouteDetails: { distanceKm: number; etaMinutes: number } | null;
+
+  // Predictions & Recommendations
+  recommendations: RecommendationItemBackend[];
+  requestPredictionForJunction: (junctionId: number, speed?: number, density?: number) => Promise<any>;
+  acceptRec: (recId: string) => Promise<void>;
+  rejectRec: (recId: string) => Promise<void>;
 }
 
 const NagpurPulseStoreContext = createContext<NagpurPulseStoreContextType | undefined>(undefined);
@@ -289,6 +296,7 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
   const [selectedJunction, setSelectedJunction] = useState<any | null>(NAGPUR_JUNCTIONS[0]);
   const [riskData, setRiskData] = useState<any[]>([]);
   const [coverageData, setCoverageData] = useState<any | null>(null);
+  const [recommendations, setRecommendations] = useState<RecommendationItemBackend[]>([]);
   const [simSpeed, setSimSpeed] = useState<number>(1);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
@@ -328,9 +336,59 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
 
   // Load backend datasets & TomTom Live API
   const loadBackendData = useCallback(async () => {
-    // 1. Police Units
+    // 0. Locations Ingest from Database
+    const locRes = await fetchLocations();
+    if (!locRes.error && locRes.locations.length > 0) {
+      setJunctionStates((prev) =>
+        prev.map((item) => {
+          const dbLoc = locRes.locations.find((l) => String(l.id) === String(item.junction.id));
+          if (dbLoc) {
+            return {
+              ...item,
+              junction: {
+                ...item.junction,
+                name: dbLoc.name,
+                latitude: dbLoc.latitude,
+                longitude: dbLoc.longitude,
+              },
+            };
+          }
+          return item;
+        })
+      );
+    }
+
+    // 1. Police Units Ingest from Database
     const pRes = await fetchPoliceUnits();
     if (!pRes.error && pRes.units.length > 0) {
+      const dbFleet: PoliceUnit[] = pRes.units.map((u) => ({
+        id: u.id,
+        callSign: u.name,
+        badgeNumber: u.badgeNumber || 'NGP-P-101',
+        unitType: (u.unitType as any) || 'PCR Van',
+        vehicleModel: 'Mahindra Scorpio-N Patrol',
+        licensePlate: 'MH-31-P-9900',
+        officersAssigned: ['Inspector V. Sharma'],
+        stationBase: 'Sitabuldi Station',
+        availability: (u.status as any) || 'AVAILABLE',
+        location: {
+          latitude: u.latitude,
+          longitude: u.longitude,
+          nearestJunctionId: 1,
+          nearestJunctionName: 'Sitabuldi Chowk',
+        },
+        telemetry: {
+          speedKmH: 35,
+          fuelPercentage: 88,
+          isSirenActive: false,
+          radioChannel: 'CH-1 Control',
+          dashcamStatus: 'ONLINE',
+          headingDegrees: 90,
+        },
+        routeHistory: [],
+        lastPingTimestamp: u.updatedAt || new Date().toISOString(),
+      }));
+      setUnits(dbFleet);
       setApiSyncState((prev) => ({
         ...prev,
         isLiveApiConnected: true,
@@ -444,6 +502,58 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
     const cRes = await fetchCoverage();
     if (!cRes.error) {
       setCoverageData(cRes);
+    }
+
+    // 7. Deployment Recommendations
+    const recRes = await fetchRecommendations();
+    if (!recRes.error) {
+      setRecommendations(recRes.recommendations);
+    }
+  }, []);
+
+  const requestPredictionForJunction = useCallback(
+    async (junctionId: number, speed = 35, density = 80) => {
+      const j = NAGPUR_JUNCTIONS.find((loc) => loc.id === junctionId) || NAGPUR_JUNCTIONS[0];
+      const payload = {
+        junction_id: junctionId,
+        features: {
+          speed,
+          density,
+          latitude: j.latitude,
+          longitude: j.longitude,
+          road_name: j.name,
+        },
+      };
+      const res = await requestPrediction(payload);
+      if (res.data) {
+        // Refresh risk data from backend DB
+        const rRes = await fetchAllRiskPredictions();
+        if (!rRes.error) {
+          setRiskData(rRes.riskData);
+        }
+      }
+      return res.data;
+    },
+    []
+  );
+
+  const acceptRec = useCallback(async (recId: string) => {
+    const res = await acceptRecommendation(recId);
+    if (res.success) {
+      const recRes = await fetchRecommendations();
+      if (!recRes.error) {
+        setRecommendations(recRes.recommendations);
+      }
+    }
+  }, []);
+
+  const rejectRec = useCallback(async (recId: string) => {
+    const res = await rejectRecommendation(recId);
+    if (res.success) {
+      const recRes = await fetchRecommendations();
+      if (!recRes.error) {
+        setRecommendations(recRes.recommendations);
+      }
     }
   }, []);
 
@@ -777,6 +887,10 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
         setSoundEnabled,
         activeRoutePolyline,
         activeRouteDetails,
+        recommendations,
+        requestPredictionForJunction,
+        acceptRec,
+        rejectRec,
       }}
     >
       {children}

@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 from typing import List, Dict, Any
-from app.database import SessionLocal
+from app.database import SessionLocal, Base, engine
 from app.models.junction import Junction
 from app.models.police_unit import PoliceUnit
 from app.models.incident import Incident
@@ -110,7 +110,8 @@ def load_police_units_dataset() -> List[Dict[str, Any]]:
 
 
 def seed_database():
-    """Seed initial Nagpur junctions, police units, incidents, and recommendations into Neon PostgreSQL."""
+    """Seed initial Nagpur junctions, police units, incidents, and recommendations into Neon PostgreSQL / SQLite."""
+    Base.metadata.create_all(bind=engine)
     session = SessionLocal()
     try:
         # 1. Seed Junctions
