@@ -127,6 +127,55 @@ def bootstrap_zones_and_admins(db: Session = None):
 
         db.commit()
         logger.info("Zones and Admin accounts successfully bootstrapped.")
+
+        # Seed initial audit logs if table is empty
+        try:
+            from app.models.audit_log import AuditLog
+            if db.query(AuditLog).count() == 0:
+                sample_audit_logs = [
+                    AuditLog(
+                        user_id=1,
+                        username="np.central.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="CENTRAL",
+                        action="DECISION_ACCEPT",
+                        resource_type="DECISION_RECORD",
+                        resource_id="DEC-2026-0041",
+                        details="Controller ACCEPTED AI recommendation: Unit PU001 dispatched to Samvidhan Square (RBI Chowk).",
+                        timestamp=datetime.utcnow(),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=2,
+                        username="np.west.controller",
+                        role="CONTROLLER",
+                        zone_code="WEST",
+                        action="DECISION_MODIFY",
+                        resource_type="DECISION_RECORD",
+                        resource_id="DEC-2026-0040",
+                        details="Controller MODIFIED recommendation: Reassigned to closer Unit PU002 for Law College Square.",
+                        timestamp=datetime.utcnow(),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=1,
+                        username="np.central.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="CENTRAL",
+                        action="LOGIN",
+                        resource_type="AUTH_SESSION",
+                        resource_id="SES-98214",
+                        details="Authenticated zone operator login session initiated with Argon2id token.",
+                        timestamp=datetime.utcnow(),
+                        success=True
+                    )
+                ]
+                db.add_all(sample_audit_logs)
+                db.commit()
+                logger.info("Initial Audit Logs automatically seeded into database.")
+        except Exception as audit_err:
+            logger.warning(f"Initial audit logs seeding skipped: {audit_err}")
+
     except Exception as err:
         logger.error(f"Error bootstrapping zones and admins: {err}")
         db.rollback()

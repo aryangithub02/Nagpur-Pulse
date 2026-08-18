@@ -218,7 +218,54 @@ def seed_database():
                 session.add(Recommendation(**rec))
         session.commit()
 
-        logger.info("Successfully seeded police_units_final dataset into Neon DB!")
+        # 5. Seed Initial Audit Logs & Human Decisions
+        from app.models.audit_log import AuditLog
+        from app.models.decision_record import DecisionRecord
+
+        if session.query(AuditLog).count() == 0:
+            sample_audit_logs = [
+                AuditLog(
+                    user_id=1,
+                    username="np.central.ops",
+                    role="ZONE_ADMIN",
+                    zone_code="CENTRAL",
+                    action="DECISION_ACCEPT",
+                    resource_type="DECISION_RECORD",
+                    resource_id="DEC-2026-0041",
+                    details="Controller ACCEPTED AI recommendation: Unit PU001 dispatched to Samvidhan Square (RBI Chowk).",
+                    timestamp=datetime.utcnow(),
+                    success=True
+                ),
+                AuditLog(
+                    user_id=2,
+                    username="np.west.controller",
+                    role="CONTROLLER",
+                    zone_code="WEST",
+                    action="DECISION_MODIFY",
+                    resource_type="DECISION_RECORD",
+                    resource_id="DEC-2026-0040",
+                    details="Controller MODIFIED recommendation: Reassigned to closer Unit PU002 for Law College Square.",
+                    timestamp=datetime.utcnow(),
+                    success=True
+                ),
+                AuditLog(
+                    user_id=1,
+                    username="np.central.ops",
+                    role="ZONE_ADMIN",
+                    zone_code="CENTRAL",
+                    action="LOGIN",
+                    resource_type="AUTH_SESSION",
+                    resource_id="SES-98214",
+                    details="Authenticated zone operator login session initiated with Argon2id token.",
+                    timestamp=datetime.utcnow(),
+                    success=True
+                )
+            ]
+            session.add_all(sample_audit_logs)
+            session.commit()
+            logger.info("Seeded initial Audit Logs into DB.")
+
+        logger.info("Successfully seeded police_units_final dataset and initial audit logs into Neon DB!")
 
     except Exception as e:
         session.rollback()
