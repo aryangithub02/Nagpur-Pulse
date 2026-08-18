@@ -63,16 +63,27 @@ app = FastAPI(
     version="1.1.0"
 )
 
-# CORS Middleware
+# Dynamic CORS Middleware
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+parsed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()] if cors_origins_env else []
+frontend_url_env = os.getenv("FRONTEND_URL", "").strip()
+if frontend_url_env and frontend_url_env not in parsed_origins:
+    parsed_origins.append(frontend_url_env)
+
+default_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+for origin in default_origins:
+    if origin not in parsed_origins:
+        parsed_origins.append(origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_origins=parsed_origins if "*" not in parsed_origins else ["*"],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.vercel\.app)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

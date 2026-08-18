@@ -1,0 +1,31 @@
+services:
+  # Nagpur Pulse FastAPI Backend
+  - type: web
+    name: nagpur-pulse-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nagpur-pulse-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: https://nagpur-pulse.vercel.app
+      - key: FRONTEND_URL
+        value: https://nagpur-pulse.vercel.app
+      - key: SECRET_KEY
+        generateValue: true
+
+databases:
+  # Render PostgreSQL Database
+  - name: nagpur-pulse-db
+    databaseName: nagpur_pulse
+    user: nagpur_user
+    plan: free
