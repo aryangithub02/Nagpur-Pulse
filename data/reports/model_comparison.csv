@@ -1,4 +1,4 @@
-model,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,high_precision,high_recall,high_f1,critical_precision,critical_recall,critical_f1,high_critical_recall,false_negatives_high,false_negatives_critical,roc_auc,training_time,prediction_time
-DummyBaseline,0.9583,0.2396,0.25,0.2447,0.9379,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4,6,0.0,0.0149,0.0001
-RandomForest,0.9729,0.472,0.6353,0.5228,0.972,0.2727,0.75,0.4,0.0,0.0,0.0,0.3,1,6,0.9926,0.2489,0.0238
-XGBoost,0.9708,0.461,0.6348,0.5153,0.9703,0.2727,0.75,0.4,0.0,0.0,0.0,0.3,1,6,0.9931,0.4887,0.0098
+model,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,balanced_accuracy,mcc,cohens_kappa,high_precision,high_recall,high_f1,critical_precision,critical_recall,critical_f1,emergency_recall_r1,emergency_precision,emergency_f1,emergency_fnr,emergency_fpr,roc_auc,pr_auc,brier_score,log_loss,training_time,prediction_time
+XGBoost (Before Imbalance Fix),0.9907,0.7361,0.7494,0.7363,0.9905,0.7494,0.8492,0.8485,0.6667,0.5,0.5714,0.5,0.5,0.5,0.8333,1.0,0.9091,0.1667,0.0,0.9986,0.8755,0.0036,0.0231,0.9047,0.0074
+Random Forest (SMOTE + Weighted),0.9838,0.7708,0.8101,0.6997,0.984,0.8101,0.7688,0.7608,1.0,0.25,0.4,0.5,1.0,0.6667,0.8333,1.0,0.9091,0.1667,0.0,0.9982,0.8769,0.0053,0.0347,0.703,0.0173
+XGBoost (SMOTE + Weighted + Calibrated),0.9907,0.8194,0.8738,0.8015,0.991,0.8738,0.8565,0.8538,1.0,0.5,0.6667,0.5,1.0,0.6667,1.0,1.0,1.0,0.0,0.0,0.9971,0.844,0.0047,0.0437,1.5496,0.0039

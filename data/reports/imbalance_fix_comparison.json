@@ -1,0 +1,342 @@
+{
+  "test_set_size": 432,
+  "class_counts_test": {
+    "LOW": 419,
+    "MEDIUM": 7,
+    "HIGH": 4,
+    "CRITICAL": 2
+  },
+  "metrics_before": {
+    "model_name": "XGBoost (Before Imbalance Handling)",
+    "accuracy": 0.9907407407407407,
+    "macro_precision": 0.736111111111111,
+    "macro_recall": 0.7494033412887828,
+    "macro_f1": 0.7363084570745861,
+    "balanced_accuracy": 0.7494033412887828,
+    "mcc": 0.8492229413972652,
+    "cohens_kappa": 0.8484609313338595,
+    "log_loss": 0.02308528684079647,
+    "brier_score": 0.0036307418486103415,
+    "roc_auc": 0.9986366260507975,
+    "pr_auc_macro": 0.8755002834306436,
+    "class_pr_auc": {
+      "LOW": 0.9999886620672456,
+      "MEDIUM": 0.947845804988662,
+      "HIGH": 0.8041666666666667,
+      "CRITICAL": 0.75
+    },
+    "confusion_matrix": [
+      [
+        418,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        7,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        1
+      ]
+    ],
+    "per_class": {
+      "LOW": {
+        "TP": 418,
+        "TN": 13,
+        "FP": 0,
+        "FN": 1,
+        "precision": 1.0,
+        "recall": 0.9976133651551312,
+        "f1": 0.998805256869773,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.002386634844868735,
+        "support": 419
+      },
+      "MEDIUM": {
+        "TP": 7,
+        "TN": 423,
+        "FP": 2,
+        "FN": 0,
+        "precision": 0.7777777777777778,
+        "recall": 1.0,
+        "f1": 0.875,
+        "specificity": 0.9952941176470588,
+        "fpr": 0.004705882352941176,
+        "fnr": 0.0,
+        "support": 7
+      },
+      "HIGH": {
+        "TP": 2,
+        "TN": 427,
+        "FP": 1,
+        "FN": 2,
+        "precision": 0.6666666666666666,
+        "recall": 0.5,
+        "f1": 0.5714285714285714,
+        "specificity": 0.9976635514018691,
+        "fpr": 0.002336448598130841,
+        "fnr": 0.5,
+        "support": 4
+      },
+      "CRITICAL": {
+        "TP": 1,
+        "TN": 429,
+        "FP": 1,
+        "FN": 1,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "specificity": 0.9976744186046511,
+        "fpr": 0.002325581395348837,
+        "fnr": 0.5,
+        "support": 2
+      }
+    },
+    "emergency_tier": {
+      "TP": 5,
+      "TN": 426,
+      "FP": 0,
+      "FN": 1,
+      "precision": 1.0,
+      "recall_R1": 0.8333333333333334,
+      "f1": 0.9090909090909091,
+      "fnr": 0.16666666666666666,
+      "fpr": 0.0
+    }
+  },
+  "metrics_after_xgb": {
+    "model_name": "XGBoost (After SMOTE + Weighting)",
+    "accuracy": 0.9884259259259259,
+    "macro_precision": 0.7944444444444444,
+    "macro_recall": 0.8113066825775657,
+    "macro_f1": 0.711009056732741,
+    "balanced_accuracy": 0.8113066825775657,
+    "mcc": 0.8201848979190814,
+    "cohens_kappa": 0.8173207036535859,
+    "log_loss": 0.04190704971551895,
+    "brier_score": 0.004679763223975897,
+    "roc_auc": 0.9979607202533853,
+    "pr_auc_macro": 0.8619558090844117,
+    "class_pr_auc": {
+      "LOW": 0.9999774313489849,
+      "MEDIUM": 0.947845804988662,
+      "HIGH": 0.75,
+      "CRITICAL": 0.75
+    },
+    "confusion_matrix": [
+      [
+        417,
+        2,
+        0,
+        0
+      ],
+      [
+        0,
+        7,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        2
+      ]
+    ],
+    "per_class": {
+      "LOW": {
+        "TP": 417,
+        "TN": 13,
+        "FP": 0,
+        "FN": 2,
+        "precision": 1.0,
+        "recall": 0.9952267303102625,
+        "f1": 0.9976076555023924,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.00477326968973747,
+        "support": 419
+      },
+      "MEDIUM": {
+        "TP": 7,
+        "TN": 423,
+        "FP": 2,
+        "FN": 0,
+        "precision": 0.7777777777777778,
+        "recall": 1.0,
+        "f1": 0.875,
+        "specificity": 0.9952941176470588,
+        "fpr": 0.004705882352941176,
+        "fnr": 0.0,
+        "support": 7
+      },
+      "HIGH": {
+        "TP": 1,
+        "TN": 428,
+        "FP": 0,
+        "FN": 3,
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.75,
+        "support": 4
+      },
+      "CRITICAL": {
+        "TP": 2,
+        "TN": 427,
+        "FP": 3,
+        "FN": 0,
+        "precision": 0.4,
+        "recall": 1.0,
+        "f1": 0.5714285714285714,
+        "specificity": 0.9930232558139535,
+        "fpr": 0.0069767441860465115,
+        "fnr": 0.0,
+        "support": 2
+      }
+    },
+    "emergency_tier": {
+      "TP": 6,
+      "TN": 426,
+      "FP": 0,
+      "FN": 0,
+      "precision": 1.0,
+      "recall_R1": 1.0,
+      "f1": 1.0,
+      "fnr": 0.0,
+      "fpr": 0.0
+    }
+  },
+  "metrics_after_rf": {
+    "model_name": "Random Forest (After SMOTE + Weighting)",
+    "accuracy": 0.9837962962962963,
+    "macro_precision": 0.5208333333333334,
+    "macro_recall": 0.7482100238663485,
+    "macro_f1": 0.5999789893896418,
+    "balanced_accuracy": 0.7482100238663485,
+    "mcc": 0.7580829744052922,
+    "cohens_kappa": 0.7526987242394505,
+    "log_loss": 0.03389908502738421,
+    "brier_score": 0.0051513321338796025,
+    "roc_auc": 0.9981257019113976,
+    "pr_auc_macro": 0.8741596136524963,
+    "class_pr_auc": {
+      "LOW": 0.9999547811405973,
+      "MEDIUM": 0.7758503401360544,
+      "HIGH": 0.8875,
+      "CRITICAL": 0.8333333333333333
+    },
+    "confusion_matrix": [
+      [
+        416,
+        3,
+        0,
+        0
+      ],
+      [
+        0,
+        7,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        2
+      ]
+    ],
+    "per_class": {
+      "LOW": {
+        "TP": 416,
+        "TN": 13,
+        "FP": 0,
+        "FN": 3,
+        "precision": 1.0,
+        "recall": 0.9928400954653938,
+        "f1": 0.9964071856287425,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.007159904534606206,
+        "support": 419
+      },
+      "MEDIUM": {
+        "TP": 7,
+        "TN": 420,
+        "FP": 5,
+        "FN": 0,
+        "precision": 0.5833333333333334,
+        "recall": 1.0,
+        "f1": 0.7368421052631579,
+        "specificity": 0.9882352941176471,
+        "fpr": 0.011764705882352941,
+        "fnr": 0.0,
+        "support": 7
+      },
+      "HIGH": {
+        "TP": 0,
+        "TN": 428,
+        "FP": 0,
+        "FN": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 1.0,
+        "support": 4
+      },
+      "CRITICAL": {
+        "TP": 2,
+        "TN": 428,
+        "FP": 2,
+        "FN": 0,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "specificity": 0.9953488372093023,
+        "fpr": 0.004651162790697674,
+        "fnr": 0.0,
+        "support": 2
+      }
+    },
+    "emergency_tier": {
+      "TP": 4,
+      "TN": 426,
+      "FP": 0,
+      "FN": 2,
+      "precision": 1.0,
+      "recall_R1": 0.6666666666666666,
+      "f1": 0.8,
+      "fnr": 0.3333333333333333,
+      "fpr": 0.0
+    }
+  }
+}

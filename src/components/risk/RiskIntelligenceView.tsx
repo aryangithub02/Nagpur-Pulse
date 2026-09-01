@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
+import { useAuth } from '../../store/authContext';
+import { isJunctionInZone } from '../../utils/geoUtils';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { NAGPUR_JUNCTIONS } from '../../data/nagpurJunctions';
 import { getWeatherHeatmap, WeatherHeatmapPoint } from '../../services/api/weather';
@@ -7,6 +9,9 @@ import { AlertOctagon, Activity, Shield, ChevronRight, Zap, CloudRain } from 'lu
 
 export const RiskIntelligenceView: React.FC = () => {
   const { riskData, setSelectedJunction } = useNagpurPulseStore();
+  const { activeZone, user } = useAuth();
+  const currentZone = user?.role === 'ZONE_ADMIN' ? user.zone : activeZone;
+
   const [weatherPoints, setWeatherPoints] = useState<WeatherHeatmapPoint[]>([]);
 
   useEffect(() => {
@@ -23,8 +28,15 @@ export const RiskIntelligenceView: React.FC = () => {
     };
   }, []);
 
-  const criticalRiskCount = riskData.filter((r) => r.riskLevel === 'CRITICAL' || r.riskLevel === 'SEVERE').length;
-  const highRiskCount = riskData.filter((r) => r.riskLevel === 'HIGH').length;
+  const zoneScopedRiskData = useMemo(() => {
+    return riskData.filter((item) => {
+      const j = NAGPUR_JUNCTIONS.find((loc) => String(loc.id) === item.locationId);
+      return j ? isJunctionInZone(j.zone, currentZone) : true;
+    });
+  }, [riskData, currentZone]);
+
+  const criticalRiskCount = zoneScopedRiskData.filter((r) => r.riskLevel === 'CRITICAL' || r.riskLevel === 'SEVERE').length;
+  const highRiskCount = zoneScopedRiskData.filter((r) => r.riskLevel === 'HIGH').length;
 
   return (
     <div className="flex flex-col gap-6 w-full font-sans">
@@ -82,7 +94,7 @@ export const RiskIntelligenceView: React.FC = () => {
           </div>
 
           <div className="space-y-2.5 overflow-y-auto max-h-[460px] pr-1">
-            {riskData.map((item) => {
+            {zoneScopedRiskData.map((item) => {
               const color = item.riskLevel === 'CRITICAL' ? 'text-rose-400 bg-rose-500/20 border-rose-500/30' : 'text-amber-400 bg-amber-500/20 border-amber-500/30';
               const scoreVal = item.riskScore <= 1 ? item.riskScore * 100 : item.riskScore;
               const wPoint = weatherPoints.find((w) => w.junction_id === item.locationId);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { useAuth } from '../../store/authContext';
+import { isJunctionInZone } from '../../utils/geoUtils';
 import { NAGPUR_JUNCTIONS } from '../../data/nagpurJunctions';
 import { calculateUnitRoute } from '../../services/api/routing';
 import { submitDecision, submitInlineDecision } from '../../services/api/decisions';
@@ -44,7 +45,7 @@ export const DispatchModal: React.FC<DispatchModalProps> = ({
   onModify,
 }) => {
   const { units, dispatchUnit, addNotification } = useNagpurPulseStore() as any;
-  const { user } = useAuth();
+  const { user, activeZone } = useAuth();
 
   const [selectedUnitId, setSelectedUnitId] = useState<string>(initialUnitId || units[0]?.id || '');
   const [selectedJunctionId, setSelectedJunctionId] = useState<number>(initialJunctionId || 1);
@@ -95,7 +96,9 @@ export const DispatchModal: React.FC<DispatchModalProps> = ({
 
   if (!isOpen) return null;
 
-  const targetJunction = NAGPUR_JUNCTIONS.find((j) => j.id === selectedJunctionId) || NAGPUR_JUNCTIONS[0];
+  const currentZone = user?.role === 'ZONE_ADMIN' ? user.zone : activeZone;
+  const availableJunctions = NAGPUR_JUNCTIONS.filter((j) => isJunctionInZone(j.zone, currentZone));
+  const targetJunction = availableJunctions.find((j) => j.id === selectedJunctionId) || availableJunctions[0] || NAGPUR_JUNCTIONS[0];
   const selectedUnit = units.find((u: any) => u.id === selectedUnitId) || units[0];
 
   // Helper: post decision to backend audit trail
@@ -441,7 +444,7 @@ export const DispatchModal: React.FC<DispatchModalProps> = ({
                 onChange={(e) => setSelectedJunctionId(Number(e.target.value))}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-sans focus:outline-none focus:border-amber-500"
               >
-                {NAGPUR_JUNCTIONS.map((j) => (
+                {availableJunctions.map((j) => (
                   <option key={j.id} value={j.id}>
                     {j.name} ({j.zone}) — Priority: {j.priorityLevel}
                   </option>

@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { DispatchModal } from './DispatchModal';
+import { DecisionReviewModal } from './DecisionReviewModal';
 import { ResourceAllocationPanel } from './ResourceAllocationPanel';
 import { AuditTrailPanel } from './AuditTrailPanel';
-import { Shield, Navigation, Radio, Activity, AlertTriangle, ChevronRight, CheckCircle2, Zap } from 'lucide-react';
+import { Shield, Navigation, Radio, Activity, AlertTriangle, ChevronRight, CheckCircle2, Zap, FileCheck2 } from 'lucide-react';
 import { WhatIfSimulationModal } from '../simulation/WhatIfSimulationModal';
 
 export const PoliceCommandView: React.FC = () => {
@@ -19,6 +20,7 @@ export const PoliceCommandView: React.FC = () => {
   } = useNagpurPulseStore() as any;
 
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState<boolean>(false);
+  const [isDecisionReviewOpen, setIsDecisionReviewOpen] = useState<boolean>(false);
   const [isWhatIfModalOpen, setIsWhatIfModalOpen] = useState<boolean>(false);
   const [targetUnitId, setTargetUnitId] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -75,23 +77,20 @@ export const PoliceCommandView: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col justify-center gap-2 font-mono">
+        <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col justify-center gap-1.5 font-mono">
           <button
-            onClick={() => setIsWhatIfModalOpen(true)}
-            className="w-full py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-600/20 transition"
+            onClick={() => setIsDecisionReviewOpen(true)}
+            className="w-full py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 transition"
           >
-            <Zap className="w-3.5 h-3.5 text-cyan-300 fill-current animate-pulse" />
-            <span>WHAT-IF SIMULATOR</span>
+            <FileCheck2 className="w-3.5 h-3.5 text-emerald-300" />
+            <span>DECISION REVIEW (HITL)</span>
           </button>
           <button
-            onClick={() => {
-              setTargetUnitId(selectedUnit?.id);
-              setIsDispatchModalOpen(true);
-            }}
-            className="w-full py-1.5 bg-blue-600/80 hover:bg-blue-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition"
+            onClick={() => setIsWhatIfModalOpen(true)}
+            className="w-full py-1 bg-gradient-to-r from-cyan-600/80 to-blue-600/80 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-[11px] flex items-center justify-center gap-1.5 transition"
           >
-            <Navigation className="w-3.5 h-3.5" />
-            <span>Open Dispatch Modal</span>
+            <Zap className="w-3 h-3 text-cyan-300" />
+            <span>WHAT-IF SIMULATOR</span>
           </button>
         </div>
       </section>
@@ -238,6 +237,13 @@ export const PoliceCommandView: React.FC = () => {
         isOpen={isDispatchModalOpen}
         onClose={() => setIsDispatchModalOpen(false)}
         initialUnitId={targetUnitId}
+      />
+
+      {/* Decision Review Modal (HITL Engine) */}
+      <DecisionReviewModal
+        isOpen={isDecisionReviewOpen}
+        onClose={() => setIsDecisionReviewOpen(false)}
+        recommendedUnitId={targetUnitId || 'P17'}
       />
 
       {/* What-If Simulation Sandbox Modal */}

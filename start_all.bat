@@ -14,10 +14,8 @@ cd /d "%ROOT_DIR%"
 :: Determine Python executable from backend venv if available
 if exist "%ROOT_DIR%backend\venv\Scripts\python.exe" (
     set "PYTHON_EXE=%ROOT_DIR%backend\venv\Scripts\python.exe"
-    set "UVICORN_EXE=%ROOT_DIR%backend\venv\Scripts\uvicorn.exe"
 ) else (
     set "PYTHON_EXE=python"
-    set "UVICORN_EXE=uvicorn"
 )
 
 :: 1. Start ML Service (Port 8001)
@@ -29,7 +27,7 @@ timeout /t 2 /nobreak >nul
 
 :: 2. Start Backend FastAPI Service (Port 8000)
 echo [2/3] Launching FastAPI Backend on http://localhost:8000 ...
-start "Nagpur Pulse - Backend API (Port 8000)" cmd /k "cd /d "%ROOT_DIR%backend" && title Nagpur Pulse Backend API && echo [BACKEND API - Port 8000] Starting... && "%UVICORN_EXE%" app.main:app --reload --port 8000"
+start "Nagpur Pulse - Backend API (Port 8000)" cmd /k "cd /d "%ROOT_DIR%backend" && title Nagpur Pulse Backend API && echo [BACKEND API - Port 8000] Starting... && "%PYTHON_EXE%" -m uvicorn app.main:app --reload --port 8000"
 
 :: Small delay before launching frontend
 timeout /t 2 /nobreak >nul

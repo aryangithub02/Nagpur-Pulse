@@ -1,0 +1,780 @@
+{
+  "test_set_size": 480,
+  "train_set_size": 1920,
+  "val_set_size": 480,
+  "class_counts_test": {
+    "LOW": 460,
+    "MEDIUM": 10,
+    "HIGH": 4,
+    "CRITICAL": 6
+  },
+  "class_counts_train": {
+    "LOW": 1868,
+    "MEDIUM": 34,
+    "HIGH": 15,
+    "CRITICAL": 3
+  },
+  "class_counts_val": {
+    "LOW": 463,
+    "MEDIUM": 6,
+    "HIGH": 7,
+    "CRITICAL": 4
+  },
+  "models": {
+    "XGBoost": {
+      "confusion_matrix_multiclass": [
+        [
+          455,
+          5,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          2,
+          0
+        ],
+        [
+          0,
+          1,
+          3,
+          0
+        ],
+        [
+          0,
+          0,
+          6,
+          0
+        ]
+      ],
+      "confusion_matrix_binary": {
+        "TP": 9,
+        "TN": 468,
+        "FP": 2,
+        "FN": 1
+      },
+      "per_class_ovr": {
+        "LOW": {
+          "TP": 455,
+          "TN": 20,
+          "FP": 0,
+          "FN": 5,
+          "precision": 1.0,
+          "recall": 0.9891304347826086,
+          "f1": 0.994535519125683,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 0.010869565217391304,
+          "support": 460
+        },
+        "MEDIUM": {
+          "TP": 8,
+          "TN": 464,
+          "FP": 6,
+          "FN": 2,
+          "precision": 0.5714285714285714,
+          "recall": 0.8,
+          "f1": 0.6666666666666666,
+          "specificity": 0.9872340425531915,
+          "fpr": 0.01276595744680851,
+          "fnr": 0.2,
+          "support": 10
+        },
+        "HIGH": {
+          "TP": 3,
+          "TN": 468,
+          "FP": 8,
+          "FN": 1,
+          "precision": 0.2727272727272727,
+          "recall": 0.75,
+          "f1": 0.4,
+          "specificity": 0.9831932773109243,
+          "fpr": 0.01680672268907563,
+          "fnr": 0.25,
+          "support": 4
+        },
+        "CRITICAL": {
+          "TP": 0,
+          "TN": 474,
+          "FP": 0,
+          "FN": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 1.0,
+          "support": 6
+        }
+      },
+      "test_accuracy": 0.9708333333333333,
+      "train_accuracy": 0.99375,
+      "val_accuracy": 0.9875,
+      "macro_precision": 0.461038961038961,
+      "micro_precision": 0.9708333333333333,
+      "weighted_precision": 0.9725108225108224,
+      "macro_recall": 0.6347826086956522,
+      "micro_recall": 0.9708333333333333,
+      "weighted_recall": 0.9708333333333333,
+      "macro_f1": 0.5153005464480874,
+      "micro_f1": 0.9708333333333333,
+      "weighted_f1": 0.9703187613843353,
+      "train_macro_f1": 0.9616944146079485,
+      "val_macro_f1": 0.7920445751431666,
+      "binary_metrics": {
+        "precision": 0.8181818181818182,
+        "recall_R1": 0.9,
+        "f1": 0.8571428571428571,
+        "specificity": 0.9957446808510638,
+        "fpr": 0.00425531914893617,
+        "fnr": 0.1,
+        "balanced_accuracy": 0.9478723404255319,
+        "mcc": 0.8549690685836133
+      },
+      "multiclass_balanced_accuracy": 0.6347826086956522,
+      "roc_auc_ovr": 0.9892957642361698,
+      "pr_auc_macro": 0.5811569011941112,
+      "class_pr_auc": {
+        "LOW": 0.9999625476113877,
+        "MEDIUM": 0.7639056776556776,
+        "HIGH": 0.3146103896103896,
+        "CRITICAL": 0.2461489898989899
+      },
+      "class_roc_auc": {
+        "LOW": 0.9991304347826087,
+        "MEDIUM": 0.9929787234042553,
+        "HIGH": 0.9858193277310924,
+        "CRITICAL": 0.9792545710267229
+      },
+      "mcc": 0.6846033863125781,
+      "cohens_kappa": 0.678714859437751,
+      "log_loss": 0.10613319277763367,
+      "brier_score_mean": 0.012491027358919382,
+      "class_brier": {
+        "LOW": 0.00783656444400549,
+        "MEDIUM": 0.013003590516746044,
+        "HIGH": 0.016864918172359467,
+        "CRITICAL": 0.012259036302566528
+      }
+    },
+    "Random Forest": {
+      "confusion_matrix_multiclass": [
+        [
+          456,
+          4,
+          0,
+          0
+        ],
+        [
+          0,
+          6,
+          4,
+          0
+        ],
+        [
+          0,
+          2,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          6,
+          0
+        ]
+      ],
+      "confusion_matrix_binary": {
+        "TP": 8,
+        "TN": 466,
+        "FP": 4,
+        "FN": 2
+      },
+      "per_class_ovr": {
+        "LOW": {
+          "TP": 456,
+          "TN": 20,
+          "FP": 0,
+          "FN": 4,
+          "precision": 1.0,
+          "recall": 0.991304347826087,
+          "f1": 0.9956331877729258,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 0.008695652173913044,
+          "support": 460
+        },
+        "MEDIUM": {
+          "TP": 6,
+          "TN": 464,
+          "FP": 6,
+          "FN": 4,
+          "precision": 0.5,
+          "recall": 0.6,
+          "f1": 0.5454545454545454,
+          "specificity": 0.9872340425531915,
+          "fpr": 0.01276595744680851,
+          "fnr": 0.4,
+          "support": 10
+        },
+        "HIGH": {
+          "TP": 2,
+          "TN": 466,
+          "FP": 10,
+          "FN": 2,
+          "precision": 0.16666666666666666,
+          "recall": 0.5,
+          "f1": 0.25,
+          "specificity": 0.9789915966386554,
+          "fpr": 0.02100840336134454,
+          "fnr": 0.5,
+          "support": 4
+        },
+        "CRITICAL": {
+          "TP": 0,
+          "TN": 474,
+          "FP": 0,
+          "FN": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 1.0,
+          "support": 6
+        }
+      },
+      "test_accuracy": 0.9666666666666667,
+      "train_accuracy": 0.9890625,
+      "val_accuracy": 0.9833333333333333,
+      "macro_precision": 0.4166666666666667,
+      "micro_precision": 0.9666666666666667,
+      "weighted_precision": 0.9701388888888889,
+      "macro_recall": 0.5228260869565218,
+      "micro_recall": 0.9666666666666667,
+      "weighted_recall": 0.9666666666666667,
+      "macro_f1": 0.4477719333068678,
+      "micro_f1": 0.9666666666666667,
+      "weighted_f1": 0.9675954413126902,
+      "train_macro_f1": 0.9395980461838583,
+      "val_macro_f1": 0.7309957207638756,
+      "binary_metrics": {
+        "precision": 0.6666666666666666,
+        "recall_R1": 0.8,
+        "f1": 0.7272727272727273,
+        "specificity": 0.9914893617021276,
+        "fpr": 0.00851063829787234,
+        "fnr": 0.2,
+        "balanced_accuracy": 0.8957446808510638,
+        "mcc": 0.7240698455939302
+      },
+      "multiclass_balanced_accuracy": 0.5228260869565218,
+      "roc_auc_ovr": 0.9922920914522086,
+      "pr_auc_macro": 0.6263178464756938,
+      "class_pr_auc": {
+        "LOW": 0.9999764520784296,
+        "MEDIUM": 0.642840721370133,
+        "HIGH": 0.2416208791208791,
+        "CRITICAL": 0.6208333333333332
+      },
+      "class_roc_auc": {
+        "LOW": 0.9994565217391305,
+        "MEDIUM": 0.9902127659574469,
+        "HIGH": 0.9837184873949579,
+        "CRITICAL": 0.9957805907172996
+      },
+      "mcc": 0.6290435506011738,
+      "cohens_kappa": 0.6248534583821805,
+      "log_loss": 0.08229463512373511,
+      "brier_score_mean": 0.01157884319711942,
+      "class_brier": {
+        "LOW": 0.008192228259050624,
+        "MEDIUM": 0.013116040075087392,
+        "HIGH": 0.013923787465731974,
+        "CRITICAL": 0.011083316988607695
+      }
+    },
+    "Logistic Regression": {
+      "confusion_matrix_multiclass": [
+        [
+          456,
+          4,
+          0,
+          0
+        ],
+        [
+          0,
+          5,
+          5,
+          0
+        ],
+        [
+          0,
+          1,
+          2,
+          1
+        ],
+        [
+          0,
+          0,
+          5,
+          1
+        ]
+      ],
+      "confusion_matrix_binary": {
+        "TP": 9,
+        "TN": 465,
+        "FP": 5,
+        "FN": 1
+      },
+      "per_class_ovr": {
+        "LOW": {
+          "TP": 456,
+          "TN": 20,
+          "FP": 0,
+          "FN": 4,
+          "precision": 1.0,
+          "recall": 0.991304347826087,
+          "f1": 0.9956331877729258,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 0.008695652173913044,
+          "support": 460
+        },
+        "MEDIUM": {
+          "TP": 5,
+          "TN": 465,
+          "FP": 5,
+          "FN": 5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "specificity": 0.9893617021276596,
+          "fpr": 0.010638297872340425,
+          "fnr": 0.5,
+          "support": 10
+        },
+        "HIGH": {
+          "TP": 2,
+          "TN": 466,
+          "FP": 10,
+          "FN": 2,
+          "precision": 0.16666666666666666,
+          "recall": 0.5,
+          "f1": 0.25,
+          "specificity": 0.9789915966386554,
+          "fpr": 0.02100840336134454,
+          "fnr": 0.5,
+          "support": 4
+        },
+        "CRITICAL": {
+          "TP": 1,
+          "TN": 473,
+          "FP": 1,
+          "FN": 5,
+          "precision": 0.5,
+          "recall": 0.16666666666666666,
+          "f1": 0.25,
+          "specificity": 0.9978902953586498,
+          "fpr": 0.002109704641350211,
+          "fnr": 0.8333333333333334,
+          "support": 6
+        }
+      },
+      "test_accuracy": 0.9666666666666667,
+      "train_accuracy": 0.9885416666666667,
+      "val_accuracy": 0.9833333333333333,
+      "macro_precision": 0.5416666666666667,
+      "micro_precision": 0.9666666666666667,
+      "weighted_precision": 0.976388888888889,
+      "macro_recall": 0.5394927536231884,
+      "micro_recall": 0.9666666666666667,
+      "weighted_recall": 0.9666666666666667,
+      "macro_f1": 0.49890829694323147,
+      "micro_f1": 0.9666666666666667,
+      "weighted_f1": 0.9697734716157205,
+      "train_macro_f1": 0.9280222940997699,
+      "val_macro_f1": 0.6557100431965442,
+      "binary_metrics": {
+        "precision": 0.6428571428571429,
+        "recall_R1": 0.9,
+        "f1": 0.75,
+        "specificity": 0.9893617021276596,
+        "fpr": 0.010638297872340425,
+        "fnr": 0.1,
+        "balanced_accuracy": 0.9446808510638298,
+        "mcc": 0.7548668897823251
+      },
+      "multiclass_balanced_accuracy": 0.5394927536231884,
+      "roc_auc_ovr": 0.9898138058702834,
+      "pr_auc_macro": 0.5823409091036077,
+      "class_pr_auc": {
+        "LOW": 0.9999484415889974,
+        "MEDIUM": 0.4890079713299745,
+        "HIGH": 0.22489495798319328,
+        "CRITICAL": 0.6155122655122656
+      },
+      "class_roc_auc": {
+        "LOW": 0.9988043478260868,
+        "MEDIUM": 0.9834042553191489,
+        "HIGH": 0.9816176470588235,
+        "CRITICAL": 0.9954289732770746
+      },
+      "mcc": 0.6288700414830845,
+      "cohens_kappa": 0.625,
+      "log_loss": 0.31212249271703474,
+      "brier_score_mean": 0.01579616458340936,
+      "class_brier": {
+        "LOW": 0.00801459543638702,
+        "MEDIUM": 0.019653676689788336,
+        "HIGH": 0.023269853702267192,
+        "CRITICAL": 0.012246532505194892
+      }
+    },
+    "Dummy Baseline": {
+      "confusion_matrix_multiclass": [
+        [
+          460,
+          0,
+          0,
+          0
+        ],
+        [
+          10,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0
+        ]
+      ],
+      "confusion_matrix_binary": {
+        "TP": 0,
+        "TN": 470,
+        "FP": 0,
+        "FN": 10
+      },
+      "per_class_ovr": {
+        "LOW": {
+          "TP": 460,
+          "TN": 0,
+          "FP": 20,
+          "FN": 0,
+          "precision": 0.9583333333333334,
+          "recall": 1.0,
+          "f1": 0.9787234042553191,
+          "specificity": 0.0,
+          "fpr": 1.0,
+          "fnr": 0.0,
+          "support": 460
+        },
+        "MEDIUM": {
+          "TP": 0,
+          "TN": 470,
+          "FP": 0,
+          "FN": 10,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 1.0,
+          "support": 10
+        },
+        "HIGH": {
+          "TP": 0,
+          "TN": 476,
+          "FP": 0,
+          "FN": 4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 1.0,
+          "support": 4
+        },
+        "CRITICAL": {
+          "TP": 0,
+          "TN": 474,
+          "FP": 0,
+          "FN": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "specificity": 1.0,
+          "fpr": 0.0,
+          "fnr": 1.0,
+          "support": 6
+        }
+      },
+      "test_accuracy": 0.9583333333333334,
+      "train_accuracy": 0.9729166666666667,
+      "val_accuracy": 0.9645833333333333,
+      "macro_precision": 0.23958333333333334,
+      "micro_precision": 0.9583333333333334,
+      "weighted_precision": 0.9184027777777779,
+      "macro_recall": 0.25,
+      "micro_recall": 0.9583333333333334,
+      "weighted_recall": 0.9583333333333334,
+      "macro_f1": 0.24468085106382978,
+      "micro_f1": 0.9583333333333334,
+      "weighted_f1": 0.9379432624113474,
+      "train_macro_f1": 0.24656810982048574,
+      "val_macro_f1": 0.2454931071049841,
+      "binary_metrics": {
+        "precision": 0.0,
+        "recall_R1": 0.0,
+        "f1": 0.0,
+        "specificity": 1.0,
+        "fpr": 0.0,
+        "fnr": 1.0,
+        "balanced_accuracy": 0.5,
+        "mcc": 0.0
+      },
+      "multiclass_balanced_accuracy": 0.25,
+      "roc_auc_ovr": 0.5,
+      "pr_auc_macro": 0.25,
+      "class_pr_auc": {
+        "LOW": 0.9583333333333334,
+        "MEDIUM": 0.020833333333333332,
+        "HIGH": 0.008333333333333333,
+        "CRITICAL": 0.0125
+      },
+      "class_roc_auc": {
+        "LOW": 0.5,
+        "MEDIUM": 0.5,
+        "HIGH": 0.5,
+        "CRITICAL": 0.5
+      },
+      "mcc": 0.0,
+      "cohens_kappa": 0.0,
+      "log_loss": 1.5018188912132147,
+      "brier_score_mean": 0.020833333333333332,
+      "class_brier": {
+        "LOW": 0.041666666666666664,
+        "MEDIUM": 0.020833333333333332,
+        "HIGH": 0.008333333333333333,
+        "CRITICAL": 0.0125
+      }
+    }
+  },
+  "cv_results": {
+    "XGBoost": {
+      "mean_accuracy": 0.9841666666666666,
+      "std_accuracy": 0.003118047822311654,
+      "mean_precision": 0.5514996159754224,
+      "std_precision": 0.03247999897492608,
+      "mean_recall": 0.6181771144461498,
+      "std_recall": 0.053135484935944124,
+      "mean_f1": 0.5705678949078544,
+      "std_f1": 0.04464920945130491
+    },
+    "Random Forest": {
+      "mean_accuracy": 0.98125,
+      "std_accuracy": 0.004930066485916358,
+      "mean_precision": 0.5409480660951249,
+      "std_precision": 0.03208093641408949,
+      "mean_recall": 0.6334623682348293,
+      "std_recall": 0.04662148870775794,
+      "mean_f1": 0.5722936115558281,
+      "std_f1": 0.04046962935787669
+    }
+  },
+  "error_count_xgb": 14,
+  "errors_sample": [
+    {
+      "index": 40,
+      "junction": "Chhatrapati Square",
+      "date": "2025-05-01",
+      "actual": "LOW",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.2816454768180847,
+        0.6786724925041199,
+        0.02138638123869896,
+        0.018295664340257645
+      ]
+    },
+    {
+      "index": 136,
+      "junction": "Jhansi Rani Square",
+      "date": "2025-05-01",
+      "actual": "LOW",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.0848788246512413,
+        0.9009031057357788,
+        0.008709434419870377,
+        0.005508580710738897
+      ]
+    },
+    {
+      "index": 137,
+      "junction": "Jhansi Rani Square",
+      "date": "2025-06-01",
+      "actual": "LOW",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.24190087616443634,
+        0.7365295886993408,
+        0.012209043838083744,
+        0.009360524825751781
+      ]
+    },
+    {
+      "index": 139,
+      "junction": "Jhansi Rani Square",
+      "date": "2025-08-01",
+      "actual": "LOW",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.019107205793261528,
+        0.9644966125488281,
+        0.009438635781407356,
+        0.006957530044019222
+      ]
+    },
+    {
+      "index": 140,
+      "junction": "Jhansi Rani Square",
+      "date": "2025-09-01",
+      "actual": "LOW",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.08090180903673172,
+        0.8924662470817566,
+        0.014460979029536247,
+        0.012170922011137009
+      ]
+    },
+    {
+      "index": 143,
+      "junction": "Jhansi Rani Square",
+      "date": "2025-12-01",
+      "actual": "HIGH",
+      "predicted": "MEDIUM",
+      "proba": [
+        0.017807727679610252,
+        0.7104011178016663,
+        0.25736507773399353,
+        0.014426085166633129
+      ]
+    },
+    {
+      "index": 193,
+      "junction": "LIC Chowk",
+      "date": "2025-02-01",
+      "actual": "MEDIUM",
+      "predicted": "HIGH",
+      "proba": [
+        0.024627594277262688,
+        0.18842634558677673,
+        0.7687022686004639,
+        0.01824376732110977
+      ]
+    },
+    {
+      "index": 194,
+      "junction": "LIC Chowk",
+      "date": "2025-03-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.002867209492251277,
+        0.003164138877764344,
+        0.9896020293235779,
+        0.004366617649793625
+      ]
+    },
+    {
+      "index": 197,
+      "junction": "LIC Chowk",
+      "date": "2025-06-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.007022862322628498,
+        0.01096151303499937,
+        0.9663631319999695,
+        0.015652522444725037
+      ]
+    },
+    {
+      "index": 198,
+      "junction": "LIC Chowk",
+      "date": "2025-07-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.01379221212118864,
+        0.09440959990024567,
+        0.8782563209533691,
+        0.013541921973228455
+      ]
+    },
+    {
+      "index": 199,
+      "junction": "LIC Chowk",
+      "date": "2025-08-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.004044266417622566,
+        0.004385632462799549,
+        0.9823225140571594,
+        0.009247587993741035
+      ]
+    },
+    {
+      "index": 200,
+      "junction": "LIC Chowk",
+      "date": "2025-09-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.005967715289443731,
+        0.007381882518529892,
+        0.9723561406135559,
+        0.014294221997261047
+      ]
+    },
+    {
+      "index": 201,
+      "junction": "LIC Chowk",
+      "date": "2025-10-01",
+      "actual": "MEDIUM",
+      "predicted": "HIGH",
+      "proba": [
+        0.002293472411110997,
+        0.0075055332854390144,
+        0.9878106117248535,
+        0.002390450332313776
+      ]
+    },
+    {
+      "index": 203,
+      "junction": "LIC Chowk",
+      "date": "2025-12-01",
+      "actual": "CRITICAL",
+      "predicted": "HIGH",
+      "proba": [
+        0.004649710841476917,
+        0.012095713056623936,
+        0.9752716422080994,
+        0.007982863113284111
+      ]
+    }
+  ]
+}

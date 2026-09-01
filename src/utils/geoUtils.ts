@@ -88,3 +88,28 @@ export function moveTowardsTarget(
     reached: false
   };
 }
+
+/**
+ * Checks if a junction belongs to the target zone.
+ * Matches strings such as "Zone 4 - South" with "SOUTH" or "Zone 2 - North" with "NORTH".
+ * If targetZone is 'ALL' or empty, matches all junctions.
+ */
+export function isJunctionInZone(
+  junctionZone: string | undefined | null,
+  targetZone: string | undefined | null
+): boolean {
+  if (!targetZone || targetZone === 'ALL') return true;
+  if (!junctionZone) return false;
+  const upperJunc = junctionZone.toUpperCase();
+  const upperTarget = targetZone.toUpperCase();
+  return upperJunc.includes(upperTarget);
+}
+
+export const ZONE_CENTERS: Record<string, { lat: number; lng: number; zoom: number; name: string }> = {
+  ALL: { lat: 21.1458, lng: 79.0882, zoom: 12.2, name: 'Nagpur Metropolitan' },
+  CENTRAL: { lat: 21.1465, lng: 79.0825, zoom: 14.0, name: 'Zone 1 - Central' },
+  NORTH: { lat: 21.1720, lng: 79.0980, zoom: 13.8, name: 'Zone 2 - North' },
+  EAST: { lat: 21.1520, lng: 79.1320, zoom: 13.8, name: 'Zone 3 - East' },
+  SOUTH: { lat: 21.1120, lng: 79.0820, zoom: 13.8, name: 'Zone 4 - South' },
+  WEST: { lat: 21.1380, lng: 79.0550, zoom: 13.8, name: 'Zone 5 - West' },
+};

@@ -17,6 +17,7 @@ from app.models.user import User, UserRole
 from app.models.audit_log import AuditLog
 from app.models.simulation_run import SimulationRun
 from app.models.decision_record import DecisionRecord
+from app.models.decision_evidence import DecisionEvidenceRecord
 
 __all__ = [
     "Junction",
@@ -36,4 +37,6 @@ __all__ = [
     "AuditLog",
     "SimulationRun",
     "DecisionRecord",
+    "DecisionEvidenceRecord",
 ]
+

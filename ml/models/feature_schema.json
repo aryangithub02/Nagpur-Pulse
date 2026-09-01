@@ -28,12 +28,5 @@
   "accidents_rolling_std_6",
   "accidents_trend_3_12",
   "junction_target_enc",
-  "junction_ordinal_enc",
-  "temperature_c",
-  "humidity_pct",
-  "precipitation_mm",
-  "visibility_km",
-  "wind_speed_kmh",
-  "storm_flag",
-  "weather_impact_score"
+  "junction_ordinal_enc"
 ]

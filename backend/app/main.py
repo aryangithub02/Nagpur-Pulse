@@ -42,6 +42,7 @@ from app.routes.auth import router as auth_router
 from app.routes.admin import router as admin_router
 from app.routes.api.simulations import router as api_simulations_v1_router
 from app.routes.api.decisions import router as api_decisions_router
+from app.routes.api.decision_review import router as api_decision_review_router
 from app.routes.api.system import router as api_system_router
 from app.bootstrap_admins import bootstrap_zones_and_admins
 
@@ -176,6 +177,8 @@ app.include_router(api_resource_allocation_router, prefix="/api/v1")
 app.include_router(api_fast_allocation_router, prefix="/api/v1")
 app.include_router(api_simulations_v1_router, prefix="/api/v1")
 app.include_router(api_decisions_router, prefix="/api/v1")
+app.include_router(api_decision_review_router, prefix="/api/decision-review")
+app.include_router(api_decision_review_router, prefix="/api/v1/decision-review")
 app.include_router(api_system_router, prefix="/api/v1")
 
 # Register Phase 5 Auth & Admin Routers

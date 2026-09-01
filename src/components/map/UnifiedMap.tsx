@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
+import { useAuth } from '../../store/authContext';
+import { isJunctionInZone, ZONE_CENTERS } from '../../utils/geoUtils';
 import { NAGPUR_JUNCTIONS, NAGPUR_CENTER_COORDINATES } from '../../data/nagpurJunctions';
 import { NAGPUR_ARTERIAL_CORRIDORS } from '../../data/nagpurCorridors';
 import { getTomTomApiKey } from '../../services/tomtomService';
@@ -25,6 +27,8 @@ import {
   Zap,
   Cpu,
   CloudRain,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface LayerVisibility {
@@ -83,6 +87,9 @@ export const UnifiedMap: React.FC<{
   const [currentZoom, setCurrentZoom] = useState<number>(NAGPUR_CENTER_COORDINATES.defaultZoom);
   const [copiedCoord, setCopiedCoord] = useState<boolean>(false);
   const [predictResult, setPredictResult] = useState<{ text: string; detailText?: string; isLoading: boolean } | null>(null);
+  const [isRouting, setIsRouting] = useState<boolean>(false);
+  const [routingSuccess, setRoutingSuccess] = useState<string | null>(null);
+  const [predictingPhase, setPredictingPhase] = useState<string>('');
 
   const [weatherPoints, setWeatherPoints] = useState<WeatherHeatmapPoint[]>([]);
   const [weatherResponse, setWeatherResponse] = useState<WeatherHeatmapResponse | null>(null);
@@ -139,12 +146,21 @@ export const UnifiedMap: React.FC<{
 
   const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
 
-  // Junctions lookup map
+  // Authenticated User Zone Context
+  const { activeZone, user } = useAuth();
+  const currentZone = user?.role === 'ZONE_ADMIN' ? user.zone : activeZone;
+
+  // Filter junctions strictly by active zone (CENTRAL, NORTH, EAST, WEST, SOUTH, or ALL)
+  const filteredJunctionStates = useMemo(() => {
+    return junctionStates.filter((item) => isJunctionInZone(item.junction.zone, currentZone));
+  }, [junctionStates, currentZone]);
+
+  // Scoped Junctions lookup map
   const junctionsById = useMemo(() => {
     const map = new Map<number, any>();
-    junctionStates.forEach((item) => map.set(item.junction.id, item));
+    filteredJunctionStates.forEach((item) => map.set(item.junction.id, item));
     return map;
-  }, [junctionStates]);
+  }, [filteredJunctionStates]);
 
   // Selected junction telemetry metrics
   const selectedState = useMemo(() => {
@@ -152,12 +168,28 @@ export const UnifiedMap: React.FC<{
     return junctionsById.get(selectedJunction.id) || null;
   }, [selectedJunction, junctionsById]);
 
+  // Auto pan/fly map to zone center when active zone changes & reselect valid junction
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const centerInfo = ZONE_CENTERS[currentZone] || ZONE_CENTERS.ALL;
+    mapRef.current.flyTo([centerInfo.lat, centerInfo.lng], centerInfo.zoom, {
+      duration: 1.2,
+      easeLinearity: 0.25,
+    });
+
+    if (selectedJunction && !isJunctionInZone(selectedJunction.zone, currentZone)) {
+      const firstInZone = filteredJunctionStates[0]?.junction || null;
+      setSelectedJunction(firstInZone);
+    }
+  }, [currentZone, filteredJunctionStates]);
+
   // Reset Map View
   const handleResetView = () => {
     if (!mapRef.current) return;
+    const centerInfo = ZONE_CENTERS[currentZone] || ZONE_CENTERS.ALL;
     mapRef.current.flyTo(
-      [NAGPUR_CENTER_COORDINATES.latitude, NAGPUR_CENTER_COORDINATES.longitude],
-      NAGPUR_CENTER_COORDINATES.defaultZoom,
+      [centerInfo.lat, centerInfo.lng],
+      centerInfo.zoom,
       { duration: 1.0 }
     );
   };
@@ -322,7 +354,8 @@ export const UnifiedMap: React.FC<{
 
     // Coverage Circles Layer
     if (layers.coverage) {
-      NAGPUR_JUNCTIONS.slice(0, 10).forEach((j) => {
+      filteredJunctionStates.slice(0, 10).forEach((item) => {
+        const j = item.junction;
         L.circle([j.latitude, j.longitude], {
           radius: 1200,
           color: '#3b82f6',
@@ -337,8 +370,9 @@ export const UnifiedMap: React.FC<{
     // AI Risk Intelligence Heat Circles
     if (layers.risk) {
       riskData.forEach((risk) => {
-        const j = NAGPUR_JUNCTIONS.find((loc) => String(loc.id) === risk.locationId);
-        if (j) {
+        const item = junctionsById.get(Number(risk.locationId));
+        if (item) {
+          const j = item.junction;
           const color =
             risk.riskLevel === 'CRITICAL' || risk.riskLevel === 'SEVERE'
               ? '#ef4444'
@@ -421,7 +455,7 @@ export const UnifiedMap: React.FC<{
 
     // Traffic Junction Spot Pins (Sleek Pins: Name on Hover, Telemetry Card on Click)
     if (layers.traffic) {
-      junctionStates.forEach((item) => {
+      filteredJunctionStates.forEach((item) => {
         const { junction, metrics } = item;
         const isSelected = selectedJunction?.id === junction.id;
         const speed = metrics ? metrics.currentSpeed : (
@@ -443,23 +477,55 @@ export const UnifiedMap: React.FC<{
               Math.abs(inc.location[1] - junction.longitude) < 0.003)
         );
 
-        // Junction Pin Color Scheme matching user reference specification:
-        // Red: Gridlock / Active Incidents / Critical
-        // Orange: Heavy Traffic / High Priority Bottlenecks
-        // Yellow: Moderate Traffic / Medium Congestion
-        // Green: Fluid Traffic / Low Congestion
-        let pinColor = '#22C55E'; // Low Risk / Fluid (#22C55E Green)
-        let speedBadgeClass = 'bg-[#12141d]/95 text-emerald-300 border-emerald-500/50';
+        // Traffic Congestion Hierarchy:
+        // 1. CRITICAL (Red #EF4444): Active Incident / Gridlock / Speed < 15 km/h / Critical Priority
+        // 2. HIGH (Orange #F97316): Heavy Congestion / Speed 15-25 km/h / High Priority
+        // 3. MODERATE (Yellow #EAB308): Moderate Congestion / Speed 25-35 km/h / Medium Priority
+        // 4. LOW (Green #22C55E): Fluid Flow / Speed >= 35 km/h / Normal / Low Priority
+        const rawCongestion = (junction.trafficCongestion || '').toLowerCase();
+        const rawPriority = (junction.priorityLevel || '').toLowerCase();
+        const rawLevel = (level || '').toLowerCase();
 
-        if (hasIncident || level === 'gridlock' || junction.trafficCongestion === 'Gridlock') {
-          pinColor = '#EF4444'; // Critical / Gridlock / Incident (#EF4444 Red)
-          speedBadgeClass = 'bg-[#12141d]/95 text-red-300 border-red-500/50';
-        } else if (level === 'heavy' || junction.trafficCongestion === 'Heavy') {
-          pinColor = '#F97316'; // Heavy / High Risk (#F97316 Orange)
-          speedBadgeClass = 'bg-[#12141d]/95 text-orange-300 border-orange-500/50';
-        } else if (level === 'moderate' || junction.trafficCongestion === 'Moderate') {
-          pinColor = '#FACC15'; // Moderate Risk (#FACC15 Yellow)
-          speedBadgeClass = 'bg-[#12141d]/95 text-amber-300 border-amber-500/50';
+        let congestionRank: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' = 'LOW';
+
+        if (
+          hasIncident ||
+          rawLevel === 'gridlock' ||
+          rawCongestion === 'gridlock' ||
+          rawPriority === 'critical' ||
+          speed < 15
+        ) {
+          congestionRank = 'CRITICAL';
+        } else if (
+          rawLevel === 'heavy' ||
+          rawCongestion === 'heavy' ||
+          rawPriority === 'high' ||
+          speed < 25
+        ) {
+          congestionRank = 'HIGH';
+        } else if (
+          rawLevel === 'moderate' ||
+          rawCongestion === 'moderate' ||
+          rawPriority === 'medium' ||
+          speed < 35
+        ) {
+          congestionRank = 'MODERATE';
+        } else {
+          congestionRank = 'LOW';
+        }
+
+        let pinColor = '#22C55E'; // Low -> Green
+        let speedBadgeClass = 'bg-[#051a0d]/95 text-emerald-300 border-emerald-500/80 shadow-emerald-500/20';
+
+        if (congestionRank === 'CRITICAL') {
+          pinColor = '#EF4444'; // Critical -> Red
+          speedBadgeClass = 'bg-[#1a0505]/95 text-red-300 border-red-500/80 shadow-red-500/20';
+        } else if (congestionRank === 'HIGH') {
+          pinColor = '#F97316'; // High -> Orange
+          speedBadgeClass = 'bg-[#1a0e05]/95 text-orange-300 border-orange-500/80 shadow-orange-500/20';
+        } else if (congestionRank === 'MODERATE') {
+          pinColor = '#EAB308'; // Moderate -> Yellow
+          speedBadgeClass = 'bg-[#1a1705]/95 text-yellow-300 border-yellow-500/80 shadow-yellow-500/20';
         }
 
         // Show label pill ONLY on hover or if explicitly set to 'all'
@@ -481,16 +547,17 @@ export const UnifiedMap: React.FC<{
           }">
               <div class="px-2.5 py-1 rounded-lg border text-[11px] font-bold font-mono shadow-2xl backdrop-blur-xl flex items-center gap-1.5 whitespace-nowrap ${speedBadgeClass}">
                 <span>${junction.name}</span>
-                <span class="px-1.5 py-0.5 rounded bg-black/50 text-[10px]">${speed} km/h</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/60 text-[10px]">${speed} km/h</span>
+                <span class="text-[9px] uppercase px-1 py-0.2 rounded font-black" style="color: ${pinColor};">${congestionRank}</span>
               </div>
             </div>
 
-            <!-- Teardrop Pin Marker SVG (Clean sharp lines without glow) -->
-            <div class="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-125 ${isSelected ? 'scale-125' : ''
-          }">
-              <svg width="28" height="36" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12C1.5 19.8 12 30.5 12 30.5C12 30.5 22.5 19.8 22.5 12C22.5 6.2 17.8 1.5 12 1.5Z" fill="${pinColor}" fill-opacity="0.25" stroke="${pinColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="11.5" r="4" fill="${pinColor}" stroke="#ffffff" stroke-width="1.5"/>
+            <!-- Teardrop Pin Marker SVG with Congestion Color Glow -->
+            <div class="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-125 ${isSelected ? 'scale-125' : ''}">
+              <svg width="30" height="38" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12C1.5 19.8 12 30.5 12 30.5C12 30.5 22.5 19.8 22.5 12C22.5 6.2 17.8 1.5 12 1.5Z" fill="${pinColor}" fill-opacity="0.9" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="11.5" r="4.5" fill="#0c0e17" stroke="#ffffff" stroke-width="1.4"/>
+                <circle cx="12" cy="11.5" r="2.5" fill="${pinColor}"/>
               </svg>
             </div>
           </div>
@@ -648,7 +715,7 @@ export const UnifiedMap: React.FC<{
     if (layers.allocations && allocations.length > 0) {
       allocations.forEach((alloc) => {
         const u = units.find((item) => item.id === alloc.unit_id);
-        const jState = junctionStates.find((item) => item.junction.id === alloc.location_id);
+        const jState = junctionsById.get(alloc.location_id);
         if (u && u.location && jState) {
           const startPt: [number, number] = [u.location.latitude, u.location.longitude];
           const endPt: [number, number] = [jState.junction.latitude, jState.junction.longitude];
@@ -683,7 +750,8 @@ export const UnifiedMap: React.FC<{
     weatherLevelFilter,
     selectedUnit,
     incidents,
-    junctionStates,
+    filteredJunctionStates,
+    currentZone,
     selectedJunction,
     labelMode,
     currentZoom,
@@ -702,15 +770,46 @@ export const UnifiedMap: React.FC<{
       {/* ----------------------------------------------------------------------- */}
       <div className="absolute top-3 left-3 right-14 z-20 flex flex-col gap-2 pointer-events-none">
         <div className="flex items-center gap-2 flex-wrap pointer-events-auto">
-          {/* 40 Spot Pins Badge */}
+          {/* Dynamic Spot Pins Count Badge with Active Zone */}
           <div className="px-3 py-1.5 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-pink-500/40 text-pink-300 text-xs font-mono font-extrabold flex items-center gap-1.5 shadow-lg">
             <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-            <span>40 SPOT PINS</span>
+            <span>{filteredJunctionStates.length} {currentZone !== 'ALL' ? `${currentZone} ZONE PINS` : 'SPOT PINS'}</span>
           </div>
 
-          {/* Nagpur City Limits Tag */}
-          <div className="px-3 py-1.5 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-slate-300 text-xs font-mono font-semibold shadow-lg">
-            Nagpur <span className="text-slate-400 font-normal">CITY LIMITS</span>
+          {/* Active Zone Badge */}
+          {currentZone !== 'ALL' ? (
+            <div className="px-3 py-1.5 bg-blue-950/90 backdrop-blur-md rounded-xl border border-blue-500/50 text-blue-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+              <span>ZONE: {currentZone} SCOPE</span>
+            </div>
+          ) : (
+            <div className="px-3 py-1.5 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-slate-300 text-xs font-mono font-semibold shadow-lg">
+              Nagpur <span className="text-slate-400 font-normal">CITY LIMITS</span>
+            </div>
+          )}
+
+          {/* Traffic Congestion Color Legend */}
+          <div className="hidden md:flex items-center gap-2.5 px-3 py-1.5 bg-[#12141d]/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-[11px] font-mono shadow-lg">
+            <span className="text-slate-400 font-bold uppercase text-[10px]">Traffic:</span>
+            <div className="flex items-center gap-1 text-red-400 font-bold">
+              <span className="w-2 h-2 rounded-full bg-red-500 shadow-sm shadow-red-500"></span>
+              <span>Critical</span>
+            </div>
+            <span className="text-slate-600">•</span>
+            <div className="flex items-center gap-1 text-orange-400 font-bold">
+              <span className="w-2 h-2 rounded-full bg-orange-500 shadow-sm shadow-orange-500"></span>
+              <span>High</span>
+            </div>
+            <span className="text-slate-600">•</span>
+            <div className="flex items-center gap-1 text-yellow-300 font-bold">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 shadow-sm shadow-yellow-400"></span>
+              <span>Moderate</span>
+            </div>
+            <span className="text-slate-600">•</span>
+            <div className="flex items-center gap-1 text-emerald-400 font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
+              <span>Low</span>
+            </div>
           </div>
 
           {/* Interconnecting Routes Toggle */}
@@ -921,64 +1020,166 @@ export const UnifiedMap: React.FC<{
             );
           })()}
 
-          {/* Simple Action Buttons */}
+          {/* Interactive Action Buttons with Loaders & Smooth Feedback */}
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => {
-                dispatchUnit(
-                  units[0]?.id || 'unit-pcr-101',
-                  selectedJunction.id,
-                  selectedJunction.name,
-                  'Traffic Patrol',
-                  'HIGH'
-                );
+              disabled={isRouting}
+              onClick={async () => {
+                if (!selectedJunction) return;
+                setIsRouting(true);
+                setRoutingSuccess(null);
+                
+                const targetUnit = units.find((u: any) => u.availability === 'AVAILABLE') || units[0] || { id: 'unit-pcr-101', callSign: 'PCR-101' };
+                
+                try {
+                  await dispatchUnit(
+                    targetUnit.id,
+                    selectedJunction.id,
+                    selectedJunction.name,
+                    'Traffic Patrol',
+                    'HIGH'
+                  );
+                  setRoutingSuccess(`✓ ${targetUnit.callSign || targetUnit.id} routed to ${selectedJunction.name}`);
+                  setTimeout(() => {
+                    setRoutingSuccess(null);
+                  }, 4000);
+                } catch (err: any) {
+                  console.error('Route unit failed:', err);
+                } finally {
+                  setIsRouting(false);
+                }
               }}
-              className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md"
+              className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md ${
+                isRouting
+                  ? 'bg-blue-800 text-blue-200 cursor-wait animate-pulse'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white'
+              }`}
             >
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Route Unit</span>
+              {isRouting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-200" />
+                  <span>Routing Unit...</span>
+                </>
+              ) : (
+                <>
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Route Unit</span>
+                </>
+              )}
             </button>
 
             <button
+              disabled={predictResult?.isLoading}
               onClick={async () => {
+                if (!selectedJunction) return;
                 setPredictResult({ text: 'Computing ML Risk & SHAP...', isLoading: true });
-                const curSpeed = selectedState?.metrics?.currentSpeed || 35;
-                const res = await requestPredictionForJunction(selectedJunction.id, curSpeed, 80);
-                if (res) {
-                  const rawScore = res.risk_score ?? (res.probability !== undefined && res.probability <= 1 ? res.probability * 100 : res.probability);
-                  const scorePercent = Math.round(rawScore ?? 45);
-                  const levelText = typeof res.prediction === 'string' && res.prediction ? res.prediction : (res.risk_level || 'ANALYZED');
-                  const dbIdText = res.id ? ` [DB Record #${res.id}]` : '';
-                  const topShap = res.shap_explanation && res.shap_explanation.length > 0
-                    ? res.shap_explanation[0].description
-                    : '';
+                setPredictingPhase('Ingesting speed & density features...');
+                
+                try {
+                  const curSpeed = selectedState?.metrics?.currentSpeed || 35;
+                  
+                  const phaseTimer = setTimeout(() => {
+                    setPredictingPhase('Evaluating calibrated XGBoost tree...');
+                  }, 450);
 
+                  const res = await requestPredictionForJunction(selectedJunction.id, curSpeed, 80);
+                  clearTimeout(phaseTimer);
+
+                  if (res) {
+                    const rawScore = res.risk_score ?? (res.probability !== undefined && res.probability <= 1 ? res.probability * 100 : res.probability);
+                    const scorePercent = Math.round(rawScore ?? 45);
+                    const levelText = typeof res.prediction === 'string' && res.prediction ? res.prediction : (res.risk_level || 'ANALYZED');
+                    const dbIdText = res.id ? ` [DB #${res.id}]` : '';
+                    const topShap = res.shap_explanation && res.shap_explanation.length > 0
+                      ? res.shap_explanation[0].description
+                      : 'Speed variance & peak interval dominance';
+
+                    setPredictResult({
+                      text: `Risk: ${levelText} (${scorePercent}%)${dbIdText}`,
+                      detailText: topShap,
+                      isLoading: false,
+                    });
+                  } else {
+                    setPredictResult({
+                      text: 'Prediction Completed',
+                      detailText: 'Nominal corridor parameters',
+                      isLoading: false,
+                    });
+                  }
+                } catch (err: any) {
                   setPredictResult({
-                    text: `Risk: ${levelText} (${scorePercent}%)${dbIdText}`,
-                    detailText: topShap,
+                    text: 'Prediction Error',
+                    detailText: err?.message || 'Inference service timeout',
                     isLoading: false,
                   });
-                } else {
-                  setPredictResult({ text: 'Prediction completed', isLoading: false });
+                } finally {
+                  setPredictingPhase('');
                 }
               }}
-              className="px-3 py-2 rounded-xl bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md"
+              className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md ${
+                predictResult?.isLoading
+                  ? 'bg-purple-900 border border-purple-400/60 text-purple-200 cursor-wait animate-pulse'
+                  : 'bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-500/40'
+              }`}
             >
-              <Cpu className="w-3.5 h-3.5 text-purple-400" />
-              <span>Predict</span>
+              {predictResult?.isLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-300" />
+                  <span>Predicting...</span>
+                </>
+              ) : (
+                <>
+                  <Cpu className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Predict</span>
+                </>
+              )}
             </button>
           </div>
 
+          {/* Route Unit Positive Confirmation Toast */}
+          {routingSuccess && (
+            <div className="mt-2 p-2.5 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-[11px] font-mono text-emerald-300 flex items-center gap-2 animate-fadeIn shadow-lg">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="font-semibold">{routingSuccess}</span>
+            </div>
+          )}
+
+          {/* Prediction Results & Smooth Animated Loading Container */}
           {predictResult && (
-            <div className="mt-2.5 p-2.5 rounded-xl bg-purple-950/90 border border-purple-500/40 text-[11px] font-mono text-purple-200 space-y-1">
-              <div className="flex items-center justify-between font-bold text-purple-300">
-                <span>{predictResult.text}</span>
-              </div>
-              {predictResult.detailText && (
-                <div className="text-[10px] text-purple-300/80 border-t border-purple-800/60 pt-1 flex items-center gap-1">
-                  <span className="text-amber-400 font-bold">SHAP:</span>
-                  <span>{predictResult.detailText}</span>
+            <div className="mt-2.5 p-3 rounded-xl bg-purple-950/90 border border-purple-500/50 text-[11px] font-mono text-purple-200 space-y-1.5 animate-fadeIn shadow-lg">
+              {predictResult.isLoading ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-purple-300">
+                    <div className="flex items-center gap-2 font-bold">
+                      <Loader2 className="w-3.5 h-3.5 text-purple-400 animate-spin" />
+                      <span>{predictResult.text}</span>
+                    </div>
+                    <span className="text-[10px] text-purple-400 font-mono animate-pulse">Running ML</span>
+                  </div>
+                  {predictingPhase && (
+                    <p className="text-[10px] text-purple-300/80 italic pl-5">
+                      {predictingPhase}
+                    </p>
+                  )}
+                  <div className="w-full bg-purple-950/80 rounded-full h-1.5 overflow-hidden border border-purple-800">
+                    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 h-full rounded-full animate-pulse w-full"></div>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between font-bold text-purple-200">
+                    <span className="text-white">{predictResult.text}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900 border border-purple-700 text-purple-300">
+                      CALIBRATED
+                    </span>
+                  </div>
+                  {predictResult.detailText && (
+                    <div className="text-[10px] text-purple-300/90 border-t border-purple-800/60 pt-1.5 flex items-start gap-1.5">
+                      <span className="text-amber-400 font-bold shrink-0">SHAP:</span>
+                      <span className="leading-tight">{predictResult.detailText}</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

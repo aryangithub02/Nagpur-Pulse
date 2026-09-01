@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
+import { useAuth } from '../../store/authContext';
+import { isJunctionInZone } from '../../utils/geoUtils';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { NAGPUR_JUNCTIONS } from '../../data/nagpurJunctions';
 import {
@@ -25,6 +27,9 @@ export const TrafficMonitorView: React.FC = () => {
     refreshTraffic,
   } = useNagpurPulseStore();
 
+  const { activeZone, user } = useAuth();
+  const currentZone = user?.role === 'ZONE_ADMIN' ? user.zone : activeZone;
+
   const [activeSubTab, setActiveSubTab] = useState<'map' | 'corridors' | 'analytics'>('map');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentTimeStr, setCurrentTimeStr] = useState<string>('');
@@ -46,16 +51,24 @@ export const TrafficMonitorView: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredJunctions = junctionStates.filter(
-    (j) =>
-      j.junction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      j.junction.zone.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const zoneScopedJunctions = useMemo(() => {
+    return junctionStates.filter((j) => isJunctionInZone(j.junction.zone, currentZone));
+  }, [junctionStates, currentZone]);
 
-  const slowestChowks = [...junctionStates]
-    .filter((j) => j.metrics !== null)
-    .sort((a, b) => (a.metrics?.currentSpeed ?? 999) - (b.metrics?.currentSpeed ?? 999))
-    .slice(0, 4);
+  const filteredJunctions = useMemo(() => {
+    return zoneScopedJunctions.filter(
+      (j) =>
+        j.junction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        j.junction.zone.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [zoneScopedJunctions, searchQuery]);
+
+  const slowestChowks = useMemo(() => {
+    return [...zoneScopedJunctions]
+      .filter((j) => j.metrics !== null)
+      .sort((a, b) => (a.metrics?.currentSpeed ?? 999) - (b.metrics?.currentSpeed ?? 999))
+      .slice(0, 4);
+  }, [zoneScopedJunctions]);
 
   return (
     <div className="flex flex-col gap-4 w-full font-sans bg-[#0b0c10] p-1 text-slate-100 selection:bg-pink-500/30">
