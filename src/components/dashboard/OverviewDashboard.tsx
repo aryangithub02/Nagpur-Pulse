@@ -24,7 +24,7 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Overview Top Stats Ribbon */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* KPI 1: Active Emergency Incidents */}
         <div
           onClick={() => onNavigateTab('incidents')}
@@ -105,6 +105,27 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
           </div>
           <p className="text-[11px] text-slate-500 font-mono mt-1 flex items-center gap-1">
             <span>View ML Predictions</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </p>
+        </div>
+
+        {/* KPI 5: Multi-Zone Admin Hub */}
+        <div
+          onClick={() => onNavigateTab('zone-admin')}
+          className="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-2xl shadow-xl transition-all cursor-pointer group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-slate-400 font-medium">ZONE ADMIN HUB</span>
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+              <Shield className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold font-mono text-indigo-400">5 / 5</span>
+            <span className="text-xs text-emerald-400 font-mono">Zones Monitored</span>
+          </div>
+          <p className="text-[11px] text-slate-500 font-mono mt-1 flex items-center gap-1">
+            <span>Open Multi-Zone Admin</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </p>
         </div>

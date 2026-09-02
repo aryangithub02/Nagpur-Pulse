@@ -12,6 +12,7 @@ import { PoliceCoverageView } from '../components/coverage/PoliceCoverageView';
 import { WeatherImpactHeatmapView } from '../components/weather/WeatherImpactHeatmapView';
 import { UserManagementView } from '../components/admin/UserManagementView';
 import { AuditLogsView } from '../components/admin/AuditLogsView';
+import { ZoneAdminHubView } from '../components/admin/ZoneAdminHubView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -32,6 +33,7 @@ function AppContent() {
         {currentTab === 'risk' && <RiskIntelligenceView />}
         {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
+        {currentTab === 'zone-admin' && <ZoneAdminHubView />}
         {currentTab === 'users' && <UserManagementView />}
         {currentTab === 'audit' && <AuditLogsView />}
       </main>

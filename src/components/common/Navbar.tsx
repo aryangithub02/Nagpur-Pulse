@@ -142,6 +142,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           </button>
 
           {/* Admin Navigation Tabs */}
+          <button
+            onClick={() => setCurrentTab('zone-admin')}
+            className={`px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 ${
+              currentTab === 'zone-admin'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
+                : 'text-amber-400 hover:text-amber-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Zone Admin</span>
+          </button>
+
           {user?.role === 'SYSTEM_ADMIN' && (
             <button
               onClick={() => setCurrentTab('users')}
