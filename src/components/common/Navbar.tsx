@@ -47,8 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left Branding & Zone Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 border border-blue-400/30 shrink-0">
-            <Shield className="w-6 h-6 animate-pulse" />
+          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-blue-500/10 shrink-0">
+            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">

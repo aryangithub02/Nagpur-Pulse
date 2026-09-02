@@ -150,8 +150,8 @@ export const LoginModal: React.FC<{
 
         {/* Header Ribbon */}
         <div className="flex items-center gap-4 border-b border-slate-800/80 pb-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-700 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30 border border-indigo-400/40 shrink-0">
-            <Shield className="w-7 h-7 animate-pulse" />
+          <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700/80 p-1.5 flex items-center justify-center shadow-xl shadow-blue-500/10 shrink-0">
+            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">

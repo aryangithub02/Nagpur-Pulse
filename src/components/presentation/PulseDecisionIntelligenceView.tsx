@@ -53,8 +53,8 @@ export const PulseDecisionIntelligenceView: React.FC<{ onReturnToDashboard?: () 
       {/* ----------------------------------------------------------------------- */}
       <div className="sticky top-14 z-30 bg-slate-950/90 backdrop-blur-xl border-y border-slate-800 px-4 py-3 -mx-4 sm:-mx-6 lg:-mx-8 flex flex-wrap items-center justify-between gap-3 shadow-2xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
-            <Cpu className="w-4 h-4 animate-pulse" />
+          <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 shrink-0">
+            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
