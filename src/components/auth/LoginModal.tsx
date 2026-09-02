@@ -150,8 +150,8 @@ export const LoginModal: React.FC<{
 
         {/* Header Ribbon */}
         <div className="flex items-center gap-4 border-b border-slate-800/80 pb-4">
-          <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700/80 p-1.5 flex items-center justify-center shadow-xl shadow-blue-500/10 shrink-0">
-            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 border border-slate-700/80 p-2 flex items-center justify-center shadow-2xl shadow-blue-500/20 shrink-0">
+            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain filter drop-shadow-lg" />
           </div>
           <div>
             <div className="flex items-center gap-2">

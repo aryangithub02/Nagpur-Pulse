@@ -46,9 +46,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
     <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur-2xl border-b border-slate-800 px-4 py-2 shadow-2xl">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left Branding & Zone Badge */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-blue-500/10 shrink-0">
-            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain" />
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-1.5 flex items-center justify-center shadow-xl shadow-blue-500/15 shrink-0 hover:scale-105 transition-transform">
+            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain filter drop-shadow-md" />
           </div>
           <div>
             <div className="flex items-center gap-2">
