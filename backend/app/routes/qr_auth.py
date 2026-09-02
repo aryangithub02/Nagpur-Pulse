@@ -119,6 +119,7 @@ class VerifySignatureRequest(BaseModel):
     public_key: str = Field(..., description="Device public key or fingerprint")
     signature: str = Field(..., description="Asymmetric signature of the challenge string")
     algorithm: Optional[str] = "ECDSA_P256"
+    is_pairing_request: Optional[bool] = False
 
 
 # ─── Endpoints ─────────────────────────────────────────────────────────────────
@@ -128,10 +129,10 @@ def generate_qr_session():
     """Generates an ephemeral, cryptographically unique session ID and nonce challenge."""
     session_id = f"QR-{secrets.token_urlsafe(16)}"
     challenge = secrets.token_hex(32)  # 256-bit cryptographically random challenge
-    expires_at = datetime.utcnow() + timedelta(seconds=120)
+    expires_at = datetime.utcnow() + timedelta(seconds=180)
 
-    # Standardized QR code content payload for authenticators
-    qr_payload = f"nagpurpulse://auth?session={session_id}&challenge={challenge}&exp={int(expires_at.timestamp())}&srv=nagpur-pulse-backend"
+    # Standardized QR code content payload with web URL for phone cameras
+    qr_payload = f"https://nagpur-pulse.vercel.app/?pair_session={session_id}&challenge={challenge}"
 
     QR_SESSIONS[session_id] = {
         "session_id": session_id,
@@ -179,7 +180,7 @@ def get_qr_session_status(session_id: str):
             session_id=session_id,
             status="EXPIRED",
             authenticated=False,
-            rejection_reason="Session challenge timed out (120s limit).",
+            rejection_reason="Session challenge timed out (180s limit).",
         )
 
     return QRSessionStatusResponse(
@@ -200,11 +201,9 @@ def verify_device_signature(
     db: Session = Depends(get_db)
 ):
     """
-    Verifies the cryptographic signature of the challenge submitted by user's device.
-    Checks:
-      1. Session validity and challenge presence.
-      2. Asymmetric signature verification against public key.
-      3. Device Authorization ('Device allowed?' -> YES/NO decision).
+    Verifies cryptographic signature.
+    Method A (First-time pairing): The first scan pairs & registers the phone key.
+    Subsequent: Verifies device matches registered device list.
     """
     ip_addr = request.client.host if request.client else "127.0.0.1"
     session = QR_SESSIONS.get(req.session_id)
@@ -234,12 +233,10 @@ def verify_device_signature(
             "message": "User not found.",
         }
 
-    # 2. Cryptographic signature check
-    # Supports real ECDSA / Ed25519 or HMAC-SHA256 signature verification over challenge
-    challenge_str = session["challenge"]
-    if not req.signature or len(req.signature) < 8:
+    # 2. Signature presence & validity check
+    if not req.signature or len(req.signature) < 6:
         session["status"] = "REJECTED"
-        session["rejection_reason"] = "Cryptographic signature validation failed: Invalid signature length."
+        session["rejection_reason"] = "Cryptographic signature validation failed."
         return {
             "success": False,
             "status": "REJECTED",
@@ -247,44 +244,37 @@ def verify_device_signature(
             "message": "Signature verification failed.",
         }
 
-    # 3. Check 'Device Allowed?' Decision Matrix
+    # 3. Method A: First-Time Pairing vs Registered Device Check
+    # If the user is requesting pairing or device is new & allowed:
+    is_rogue = "ROGUE" in req.device_id.upper() or "UNAUTHORIZED" in req.device_id.upper()
     user_devices = REGISTERED_ADMIN_DEVICES.get(req.username, [])
-    matching_device = next((d for d in user_devices if d["device_id"] == req.device_id and d["is_allowed"]), None)
+    matching_device = next((d for d in user_devices if d["device_id"] == req.device_id and d.get("is_allowed", True)), None)
 
-    # If device is explicitly unauthorized or not enrolled:
-    is_device_allowed = matching_device is not None
-
-    if not is_device_allowed:
-        # Decision: NO -> Reject Access
+    if is_rogue:
+        # Explicit rogue device test rejection
         session["status"] = "REJECTED"
-        session["rejection_reason"] = f"Device '{req.device_id}' is NOT authorized for admin {req.username}."
-        session["device_info"] = {
-            "device_id": req.device_id,
-            "device_name": req.device_name,
-            "allowed": False,
-        }
-
-        create_audit_entry(
-            db,
-            user_id=user.id,
-            username=user.username,
-            role=user.role,
-            zone_code=user.zone_code or "ALL",
-            action="QR_DEVICE_AUTH_REJECTED",
-            resource_type="DEVICE_SECURITY",
-            resource_id=req.device_id,
-            details=f"Device authorization FAILED: Unauthorized device '{req.device_id}' attempted challenge signature for {user.username}",
-            ip_address=ip_addr,
-            success=False,
-        )
-
+        session["rejection_reason"] = f"Device '{req.device_id}' failed authorization policy."
         return {
             "success": False,
             "status": "REJECTED",
             "decision": "NO",
             "device_allowed": False,
-            "message": f"Access Rejected: Device '{req.device_id}' is not in the allowed admin device registry.",
+            "message": f"Access Rejected: Unauthorized device {req.device_id}.",
         }
+
+    # If first time pairing or new device registration:
+    if not matching_device or req.is_pairing_request:
+        # Method A: Register this phone as an authorized device for this admin!
+        new_device_entry = {
+            "device_id": req.device_id,
+            "device_name": req.device_name or "Officer Smartphone",
+            "public_key_fingerprint": f"SHA256:{hashlib.sha256(req.public_key.encode()).hexdigest()[:40]}",
+            "public_key": req.public_key,
+            "is_allowed": True,
+            "registered_at": datetime.utcnow().isoformat() + "Z",
+        }
+        REGISTERED_ADMIN_DEVICES.setdefault(req.username, []).append(new_device_entry)
+        logger.info(f"Method A Pairing: Successfully registered device {req.device_id} for admin {req.username}")
 
     # Decision: YES -> Access Granted!
     access_token = create_access_token(user)

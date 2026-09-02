@@ -38,6 +38,7 @@ export interface DeviceSignatureSubmission {
   public_key: string;
   signature: string;
   algorithm?: string;
+  is_pairing_request?: boolean;
 }
 
 export interface DeviceVerificationResult {
