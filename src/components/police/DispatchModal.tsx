@@ -47,7 +47,12 @@ export const DispatchModal: React.FC<DispatchModalProps> = ({
   const { units, dispatchUnit, addNotification } = useNagpurPulseStore() as any;
   const { user, activeZone } = useAuth();
 
-  const [selectedUnitId, setSelectedUnitId] = useState<string>(initialUnitId || units[0]?.id || '');
+  const zoneScopedUnits = units.filter((u: any) => {
+    if (!activeZone || activeZone === 'ALL') return true;
+    return u.zone === activeZone;
+  });
+
+  const [selectedUnitId, setSelectedUnitId] = useState<string>(initialUnitId || zoneScopedUnits[0]?.id || units[0]?.id || '');
   const [selectedJunctionId, setSelectedJunctionId] = useState<number>(initialJunctionId || 1);
   const [incidentType, setIncidentType] = useState<string>('Road Accident (112 Call)');
   const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('HIGH');
@@ -454,13 +459,15 @@ export const DispatchModal: React.FC<DispatchModalProps> = ({
 
             {/* Unit Roster Selection */}
             <div>
-              <label className="block text-slate-400 text-[11px] mb-1">Assigned Response Unit</label>
+              <label className="block text-slate-400 text-[11px] mb-1">
+                Assigned Response Unit {activeZone && activeZone !== 'ALL' ? `(${activeZone} Zone Only)` : ''}
+              </label>
               <select
                 value={selectedUnitId}
                 onChange={(e) => setSelectedUnitId(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-sans focus:outline-none focus:border-amber-500"
               >
-                {units.map((u: any) => (
+                {zoneScopedUnits.map((u: any) => (
                   <option key={u.id} value={u.id}>
                     {u.callSign} [{u.availability}] — Near {u.location.nearestJunctionName}
                   </option>

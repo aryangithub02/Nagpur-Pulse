@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
+import { useAuth } from '../../store/authContext';
 import { UnifiedMap } from '../map/UnifiedMap';
 import { DispatchModal } from './DispatchModal';
 import { DecisionReviewModal } from './DecisionReviewModal';
@@ -19,6 +20,8 @@ export const PoliceCommandView: React.FC = () => {
     recommendations,
   } = useNagpurPulseStore() as any;
 
+  const { activeZone } = useAuth();
+
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState<boolean>(false);
   const [isDecisionReviewOpen, setIsDecisionReviewOpen] = useState<boolean>(false);
   const [isWhatIfModalOpen, setIsWhatIfModalOpen] = useState<boolean>(false);
@@ -26,7 +29,13 @@ export const PoliceCommandView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  const filteredUnits = units.filter((u: any) => {
+  // Strict Zone-based fleet scoping: Zone Admin only sees units stationed in their zone
+  const zoneScopedUnits = units.filter((u: any) => {
+    if (!activeZone || activeZone === 'ALL') return true;
+    return u.zone === activeZone;
+  });
+
+  const filteredUnits = zoneScopedUnits.filter((u: any) => {
     const matchesSearch =
       u.callSign.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.location.nearestJunctionName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -34,7 +43,8 @@ export const PoliceCommandView: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const availableCount = units.filter((u: any) => u.availability === 'AVAILABLE').length;
+  const availableCount = zoneScopedUnits.filter((u: any) => u.availability === 'AVAILABLE').length;
+  const activeDispatchesCount = zoneScopedUnits.filter((u: any) => u.availability === 'EN_ROUTE' || u.availability === 'ON_SCENE').length;
 
   return (
     <div className="flex flex-col gap-5 w-full">
@@ -42,11 +52,11 @@ export const PoliceCommandView: React.FC = () => {
       <section className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-xl">
         <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between font-mono">
           <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Fleet Readiness</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Fleet Readiness ({activeZone || 'ALL'})</p>
             <p className="text-xl font-bold text-blue-400 mt-0.5">
-              {Math.round((availableCount / (units.length || 1)) * 100)}%
+              {Math.round((availableCount / (zoneScopedUnits.length || 1)) * 100)}%
             </p>
-            <span className="text-[10px] text-slate-500">{availableCount} of {units.length} Units Available</span>
+            <span className="text-[10px] text-slate-500">{availableCount} of {zoneScopedUnits.length} Units in {activeZone && activeZone !== 'ALL' ? `${activeZone} Zone` : 'Nagpur'}</span>
           </div>
           <div className="w-9 h-9 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Shield className="w-5 h-5" />
@@ -55,9 +65,9 @@ export const PoliceCommandView: React.FC = () => {
 
         <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between font-mono">
           <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Active Dispatches</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Active Dispatches ({activeZone || 'ALL'})</p>
             <p className="text-xl font-bold text-amber-400 mt-0.5">
-              {units.filter((u: any) => u.availability === 'EN_ROUTE' || u.availability === 'ON_SCENE').length}
+              {activeDispatchesCount}
             </p>
             <span className="text-[10px] text-slate-500">Live GPS Polylines</span>
           </div>

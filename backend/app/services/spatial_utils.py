@@ -47,3 +47,29 @@ def generate_route_waypoints(lat1: float, lon1: float, lat2: float, lon2: float,
         lon = lon1 + (lon2 - lon1) * ratio
         points.append({"latitude": round(lat, 6), "longitude": round(lon, 6)})
     return points
+
+
+def resolve_unit_zone(lat: float, lon: float, unit_id: str = "", unit_name: str = "") -> str:
+    """Classifies police unit into one of 5 operational zones: CENTRAL, NORTH, EAST, WEST, SOUTH."""
+    name_upper = (unit_name or unit_id).upper()
+    if any(k in name_upper for k in ["SOUTH", "MANEWADA", "AJNI", "CHATRAPATI", "KHAMLA", "MEDICAL", "SOMALWADA"]):
+        return "SOUTH"
+    if any(k in name_upper for k in ["NORTH", "INDORA", "KAMPTEE", "GADDI", "AUTOMOTIVE", "MANKAPUR", "KADBI"]):
+        return "NORTH"
+    if any(k in name_upper for k in ["EAST", "ITWARI", "KALAMNA", "PARDI", "VAISHNODEVI", "GOLIBAR", "LAKADGANJ"]):
+        return "EAST"
+    if any(k in name_upper for k in ["WEST", "LAXMI", "SHANKAR", "DHARAMPETH", "MATE", "AMBAZARI", "WADI", "BAJAJ"]):
+        return "WEST"
+    if any(k in name_upper for k in ["CENTRAL", "SADAR", "SITABULDI", "LIC", "LOKMAT", "COTTON", "SAMVIDHAN", "VARIETY"]):
+        return "CENTRAL"
+
+    # Spatial classification centered around Central Nagpur (21.1458, 79.0882)
+    if lat < 21.135:
+        return "SOUTH"
+    elif lat > 21.160:
+        return "NORTH"
+    elif lon > 79.105:
+        return "EAST"
+    elif lon < 79.070:
+        return "WEST"
+    return "CENTRAL"

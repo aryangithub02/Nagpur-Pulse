@@ -155,6 +155,12 @@ export const UnifiedMap: React.FC<{
     return junctionStates.filter((item) => isJunctionInZone(item.junction.zone, currentZone));
   }, [junctionStates, currentZone]);
 
+  // Filter police units strictly by active zone (Zone Admin only sees units in their zone)
+  const filteredUnits = useMemo(() => {
+    if (!currentZone || currentZone === 'ALL') return units;
+    return units.filter((u) => u.zone === currentZone);
+  }, [units, currentZone]);
+
   // Scoped Junctions lookup map
   const junctionsById = useMemo(() => {
     const map = new Map<number, any>();
@@ -614,7 +620,7 @@ export const UnifiedMap: React.FC<{
 
     // Police Fleet Units Layer (#3B82F6 Blue)
     if (layers.policeUnits) {
-      units.forEach((unit) => {
+      filteredUnits.forEach((unit) => {
         const isSelected = selectedUnit?.id === unit.id;
         const statusColor = '#3B82F6'; // Police Active (#3B82F6 Blue)
 

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.services.police_unit_service import police_unit_service
+from app.services.spatial_utils import resolve_unit_zone
 from app.schemas.api_schemas import PoliceUnitItem, PoliceUnitListResponse
 
 router = APIRouter(prefix="/api/police-units", tags=["Frontend - Police Units"])
@@ -18,8 +19,8 @@ def get_all_police_units(
     units = police_unit_service.get_units(db)
     items = []
     for u in units:
-        u_zone = getattr(u, "zone", None) or getattr(u, "zone_code", None)
-        if zone and zone != "ALL" and u_zone:
+        u_zone = getattr(u, "zone_code", None) or getattr(u, "zone", None) or resolve_unit_zone(u.latitude, u.longitude, u.id, u.name)
+        if zone and zone != "ALL":
             if u_zone.upper() != zone.upper():
                 continue
         items.append(
@@ -29,6 +30,8 @@ def get_all_police_units(
                 badgeNumber=u.badge_number,
                 unitType=u.unit_type,
                 status=u.status,
+                zone=u_zone,
+                zone_code=u_zone,
                 latitude=u.latitude,
                 longitude=u.longitude,
                 updatedAt=u.updated_at
@@ -46,8 +49,8 @@ def get_available_police_units(
     units = police_unit_service.get_available_units(db)
     items = []
     for u in units:
-        u_zone = getattr(u, "zone", None) or getattr(u, "zone_code", None)
-        if zone and zone != "ALL" and u_zone:
+        u_zone = getattr(u, "zone_code", None) or getattr(u, "zone", None) or resolve_unit_zone(u.latitude, u.longitude, u.id, u.name)
+        if zone and zone != "ALL":
             if u_zone.upper() != zone.upper():
                 continue
         items.append(
@@ -57,6 +60,8 @@ def get_available_police_units(
                 badgeNumber=u.badge_number,
                 unitType=u.unit_type,
                 status=u.status,
+                zone=u_zone,
+                zone_code=u_zone,
                 latitude=u.latitude,
                 longitude=u.longitude,
                 updatedAt=u.updated_at
@@ -69,12 +74,15 @@ def get_available_police_units(
 def get_police_unit_by_id(unit_id: str, db: Session = Depends(get_db)) -> PoliceUnitItem:
     """Return specific police unit details by delegating to PoliceUnitService."""
     u = police_unit_service.get_unit(db, unit_id)
+    u_zone = getattr(u, "zone_code", None) or getattr(u, "zone", None) or resolve_unit_zone(u.latitude, u.longitude, u.id, u.name)
     return PoliceUnitItem(
         id=u.id,
         name=u.name,
         badgeNumber=u.badge_number,
         unitType=u.unit_type,
         status=u.status,
+        zone=u_zone,
+        zone_code=u_zone,
         latitude=u.latitude,
         longitude=u.longitude,
         updatedAt=u.updated_at

@@ -74,6 +74,8 @@ class PoliceUnitItem(BaseModel):
     badgeNumber: Optional[str] = Field(None, description="Badge or vehicle number")
     unitType: str = Field("PATROL", description="Unit type: PATROL, TRAFFIC, RESPONSE")
     status: str = Field("AVAILABLE", description="Status: AVAILABLE, DEPLOYED, UNAVAILABLE")
+    zone: Optional[str] = Field(None, description="Operational Zone (CENTRAL, NORTH, EAST, WEST, SOUTH)")
+    zone_code: Optional[str] = Field(None, description="Zone code")
     latitude: float = Field(..., description="Unit current latitude")
     longitude: float = Field(..., description="Unit current longitude")
     updatedAt: datetime = Field(..., description="Last location update timestamp")

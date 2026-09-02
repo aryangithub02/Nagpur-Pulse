@@ -57,6 +57,7 @@ export interface PoliceUnit {
   licensePlate: string;
   officersAssigned: string[];
   stationBase: string;
+  zone?: 'CENTRAL' | 'NORTH' | 'EAST' | 'WEST' | 'SOUTH' | 'ALL';
   availability: AvailabilityStatus;
   location: LocationCoordinates;
   targetDestination?: DestinationTarget;
@@ -83,6 +84,8 @@ export interface PoliceUnitItemBackend {
   badgeNumber?: string;
   unitType: string;
   status: string;
+  zone?: string;
+  zone_code?: string;
   latitude: number;
   longitude: number;
   updatedAt: string;
