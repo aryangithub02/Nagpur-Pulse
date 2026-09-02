@@ -1,222 +1,268 @@
-========================================================================================
-             NAGPUR PULSE — PULSE DECISION INTELLIGENCE PLATFORM
-      COMPLETE OFFICIAL HACKATHON DEMONSTRATION & TECHNICAL PRESENTATION SCRIPT
-========================================================================================
-PROJECT TITLE: Nagpur Pulse (Intelligent Urban Mobility & Police Decision Intelligence)
-AUDIENCE: Hackathon Grand Jury, Technical Judges, Smart City Authorities, Police Leadership
-SPEAKER ROLE: Lead AI Architect & System Presenter
-ESTIMATED DURATION: 5 to 7 Minutes (or modular per-slide breakdown)
-LIVE APP URL: https://nagpur-pulse.vercel.app
-BACKEND API: https://nagpur-pulse-backend.onrender.com
-========================================================================================
+================================================================================
+ NAGPUR PULSE — COMPLETE SECTION-BY-SECTION DEMONSTRATION SCRIPT (.TXT)
+ AI Emergency Traffic Intelligence & Police Command Decision System
+================================================================================
 
-----------------------------------------------------------------------------------------
-[SECTION 0: THE HOOK & OPENING STATEMENT — 0:00 to 0:45]
-----------------------------------------------------------------------------------------
-(Action: Start screen on the Hero section of "PULSE DECISION INTELLIGENCE" or Live Command Center)
+Target Audience: Hackathon Judges, Police/Government Officials & Technical Evaluators
+Live Application: https://nagpur-pulse.vercel.app
+Navigation Sequence: 
+  [1] DASHBOARD 
+  [2] POLICE COMMAND 
+  [3] TRAFFIC MONITOR 
+  [4] INCIDENTS 
+  [5] RISK INTELLIGENCE 
+  [6] WEATHER HEATMAP 
+  [7] COVERAGE 
+  [8] ZONE ADMIN 
+  [9] AUDIT LOGS
 
-SPEAKER:
-"Respected Judges, Ladies and Gentlemen,
+================================================================================
+ 0. OPENING HOOK & SYSTEM PHILOSOPHY (0:00 - 0:45)
+================================================================================
 
-Every smart city in the world today is drowning in raw data. In Nagpur alone, there are 
-over 3,800 CCTV cameras, continuous Dial 112 emergency calls, and GPS telemetry from police 
-patrol units. Yet, in 2024, our city suffered 345 road fatalities, with over 85% involving 
-vulnerable two-wheeler riders.
+[ON SCREEN]: Top Navigation Bar showing "NAGPUR PULSE", active "CENTRAL ZONE" 
+             badge, and logged-in commander account "np.central.ops (ZONE_ADMIN)".
 
-Why? Because having sensors is not the same as having intelligence. Today, emergency 
-dispatching is manual, disconnected across operational silos, and relies on naive shortest-path 
-heuristics. 
+[SPOKEN SCRIPT]:
+"Respected Judges,
 
-We built NAGPUR PULSE.
+Nagpur Pulse is an AI-assisted Decision Intelligence Platform for municipal mobility 
+and emergency police dispatch. In 2024, Nagpur recorded 345 road fatalities across 
+critical arterial junctions.
 
-Nagpur Pulse is NOT just a risk prediction model, and it is NOT a simple dashboard. 
-It is a multi-stage AI-assisted Decision Intelligence Pipeline that predicts, explains, 
-optimizes, evaluates consequences, reviews recommendations, and keeps the human 
-police commander in control."
+Most smart-city platforms simply display retrospective dashboards. Nagpur Pulse is 
+fundamentally different: it is an active, explainable, consequence-aware decision 
+engine. It ingests live traffic sensors, Dial 112 emergency calls, historical accident 
+heatmaps, and police patrol GPS telemetry to solve one critical challenge:
 
-----------------------------------------------------------------------------------------
-[SECTION 1: CITY SIGNALS & MULTIMODAL INGESTION — 0:45 to 1:30]
-----------------------------------------------------------------------------------------
-(Action: Navigate or scroll to Section 1: City Signals Convergence)
+  'How do we deploy the optimal police resource to an emergency in seconds, 
+   without creating dangerous blindspots elsewhere in the city?'
 
-SPEAKER:
-"Let's look under the hood at Stage 1: Multimodal Urban Ingestion.
+Let us walk you through each operational section across our command center."
 
-Our backend continuously ingests 9 live and historical data streams across all 44 key 
-arterial junctions of Nagpur:
-1. Real-time TomTom Traffic Flow (speed, delay index, bottleneck jam factor)
-2. Live Dial 112 Emergency CAD Calls (caller priority codes, incident severity)
-3. 6-Year Historical Crash Archive (23 verified persistent black-spots)
-4. Live Weather Telemetry (precipitation in mm/h, waterlogging risk, surface friction)
-5. Civic & Public Events (stadium crowds, political rallies, VVIP security cordons)
-6. Infrastructure Road Geometry (blind turn conflict angles, lane counts, lighting)
-7. Real-Time Police Patrol GPS (heading, vehicle FSM status, shift workload)
-8. Municipal Roadworks (Metro rail construction, bridge maintenance diversions)
-9. ANPR and Red-Light Violation Detection feeds.
 
-Before feeding this data into our AI, our Data Intelligence Pipeline validates schemas, 
-normalizes inputs, handles data staleness (with a hard cutoff at 300 seconds), and constructs 
-a unified 30-dimensional operational feature vector."
+================================================================================
+ 1. DASHBOARD — CITY-WIDE COMMAND CANVAS (0:45 - 1:30)
+================================================================================
 
-----------------------------------------------------------------------------------------
-[SECTION 2: THE AI RISK ENGINE & MACHINE LEARNING ARCHITECTURE — 1:30 to 2:45]
-----------------------------------------------------------------------------------------
-(Action: Navigate to Section 2: AI Risk Intelligence & XGBoost GBDT)
+[ON SCREEN]: Click on the [Dashboard] tab.
+[HIGHLIGHT]: Top KPI cards (Active Incidents, Available Fleet, Avg Speed, High Risk 
+             Zones, 5/5 Zones Active) and the Central Interactive Command Map.
 
-SPEAKER:
-"This brings us to Stage 2: The Core Machine Learning Risk Engine.
+[SPOKEN SCRIPT]:
+"We begin on the Dashboard—the real-time operational canvas of Nagpur.
 
-HOW THE MODEL WAS TRAINED:
-- Training Dataset: 2,880 observation records across Nagpur's 44 key chowks, 
-  partitioned into 1,920 training, 480 validation, and 480 test records.
-- Extreme Class Imbalance Handling: Severe emergency crashes naturally represent less 
-  than 2% of real-world traffic time. To prevent the model from ignoring rare deadly events, 
-  we applied SMOTE (Synthetic Minority Over-sampling Technique) on training splits combined 
-  with class-weighted cost functions.
-- Selected Architecture: An XGBoost Gradient-Boosted Decision Tree (GBDT) with 30 engineered 
-  features, including 7-day, 90-day, and 1-year rolling crash means, lag frequencies, 
-  spatial interaction terms, and temporal rush-hour flags.
-- Benchmarks: 
-  * Overall Model Accuracy: 99.07%
-  * Emergency Safety Recall for CRITICAL Crashes: 100.0% (Zero False Negatives)
-  * ROC-AUC: 0.9971
-  * Inference Latency: 3.9 milliseconds per prediction.
+Across the top telemetry ribbon, commanders see live, city-wide KPIs:
+  • Active emergency incidents under active response triage.
+  • 14 Available Police Patrol Units currently on active duty in our zone.
+  • Real-time city average vehicle velocity (~27.4 km/h).
+  • ML-predicted high-risk junction hotspots requiring proactive patrol posture.
 
-PROBABILISTIC INFERENCE VS BINARY LABELS:
-Instead of outputting a naive hardcoded label, our model outputs calibrated Softmax 
-probabilities across all 4 tiers:
-- LOW Risk (e.g., 3%)
-- MEDIUM Risk (e.g., 8%)
-- HIGH Risk (e.g., 61%)
-- CRITICAL Risk (e.g., 28%)
+On the central command map, our system renders all 44 key chowks of Nagpur—including 
+Sitabuldi, Wardha Road, Zero Mile, and Pardi Flyover—with live traffic congestion 
+overlays, speed telemetry, and active police patrol units with heading and siren status.
 
-We then compute a continuous composite Risk Score from 0 to 100 using the formula:
-Risk Score = P(Low)*0 + P(Med)*35 + P(High)*70 + P(Crit)*100
+Every data point on this screen updates in real time via asynchronous WebSockets."
 
-This allows our police command center to see smooth, nuanced risk escalation rather than 
-sudden jarring alerts."
 
-----------------------------------------------------------------------------------------
-[SECTION 3: EXPLAINABLE AI (SHAP FEATURE ATTRIBUTION) — 2:45 to 3:30]
-----------------------------------------------------------------------------------------
-(Action: Navigate to Section 3: Explainable AI / SHAP Waterfall)
+================================================================================
+ 2. POLICE COMMAND — RESOURCE ALLOCATION & DECISION REVIEW (1:30 - 3:00)
+================================================================================
 
-SPEAKER:
-"A major reason AI fails in real-world public safety is the 'Black Box' problem. 
-A police officer will never trust a model if they do not know WHY it made a prediction.
+[ON SCREEN]: Click on [Police Command] (badge showing 14 available units).
+             Click on a patrol unit or open the [Decision Review] Modal (DAS Score).
+[HIGHLIGHT]: Unit Finite State Machine (AVAILABLE, EN_ROUTE, ON_SCENE), candidate 
+             unit comparison, What-If simulation penalty, and DAS Score breakdown.
 
-In Stage 3, Nagpur Pulse implements SHAP (SHapley Additive exPlanations) for real-time 
-local feature attribution.
+[SPOKEN SCRIPT]:
+"Next is Police Command—where AI decision intelligence translates into action.
 
-For every single alert, the system answers: 'WHY DID THE MODEL PREDICT THIS RISK?'
+Every police unit operates under a strict database-enforced Finite State Machine. 
+When an emergency occurs, our Resource Optimization Engine (built with Google 
+OR-Tools CP-SAT) solves a constrained multi-objective allocation problem.
 
-As you can see on this waterfall visual:
-- Positive risk drivers push the score up towards Critical: 
-  * Incident Severity (+0.28)
-  * Real-Time Traffic Congestion (+0.21)
-  * Historical Fatal Black-Spot Density (+0.18)
-  * Surface Rain Intensity (+0.14)
-- Mitigating features push the risk down:
-  * Recent Police Patrol Presence (-0.09)
-  * Physical Median Divider (-0.05)
+Our fundamental operational breakthrough is: FASTEST DOES NOT EQUAL BEST.
 
-The dispatcher sees exact mathematical accountability: from the City Baseline Risk of 0.18 
-all the way to the final alert output of 0.89."
+Traditional systems blindly dispatch the closest unit. Nagpur Pulse evaluates:
+  1. Traffic-calibrated ETA via TomTom live routing.
+  2. Vehicle capability matching (e.g., Heavy PCR Van vs Quick Interceptor).
+  3. Officer shift fatigue and active mission workload.
+  4. CONSEQUENCE-AWARE SECTOR PRESERVATION: The system simulates whether 
+     pulling a unit from its current sector leaves that neighborhood vulnerable 
+     to an unmonitored crash.
 
-----------------------------------------------------------------------------------------
-[SECTION 4 & 5: RESOURCE OPTIMIZATION & 'FASTEST ≠ BEST' — 3:30 to 4:45]
-----------------------------------------------------------------------------------------
-(Action: Navigate to Section 4 & 5: Resource Intelligence & Consequence-Aware Decision)
+When a recommendation is formed, our Decision Review Engine calculates a 12-parameter 
+Decision Assurance Score (DAS: 0 to 100) and checks 5 Hard Constraint Gates. 
+If a vehicle is critically low on fuel or from an unauthorized zone, the system 
+hard-blocks the dispatch to prevent operational failure."
 
-SPEAKER:
-"Now, once risk is detected, how do we dispatch?
 
-Traditional systems make a fatal mistake: they always pick the nearest car with the lowest ETA.
-In Nagpur Pulse, our core operational principle is: FASTEST DOES NOT EQUAL BEST.
+================================================================================
+ 3. TRAFFIC MONITOR — TOMTOM SPEED FEEDS & CONGESTION (3:00 - 3:45)
+================================================================================
 
-Let me explain with a real scenario from our system:
-Imagine a severe Code 3 crash occurs at Medical Square.
-- Unit P17 at Ajni Chowk has the fastest arrival ETA of 2.9 minutes.
-- BUT Unit P17 is the SOLE interceptor covering the southern national highway. 
-  If you pull P17, South Zone coverage drops to 55%, leaving an entire corridor unprotected 
-  and increasing secondary crash risk by +38%.
-- On the other hand, Unit P12 is 4.1 minutes away (just 72 seconds slower). 
-  Unit P12 has a trauma kit, low crew fatigue, and Unit P16 at Manewada can immediately 
-  overlap its beat, preserving 92% sector coverage.
+[ON SCREEN]: Click on [Traffic Monitor] tab.
+[HIGHLIGHT]: 44 Junction speed feeds, Congestion Jam Index, Arterial vs Ring Road 
+             velocities, and real-time bottleneck alerts.
 
-Using the Google OR-Tools CP-SAT Combinatorial Solver, Nagpur Pulse optimizes across 
-arrival time, capability match, workload balance, and spatial coverage preservation."
+[SPOKEN SCRIPT]:
+"Under Traffic Monitor, Nagpur Pulse streams live traffic velocity and congestion 
+metrics across all 44 primary junctions in Nagpur.
 
-----------------------------------------------------------------------------------------
-[SECTION 6 & 7: WHAT-IF ANALYSIS & DECISION ASSURANCE SCORE (DAS) — 4:45 to 5:45]
-----------------------------------------------------------------------------------------
-(Action: Navigate to Section 6 & 7: What-If Sandbox & Decision Review Engine)
+We continuously calculate the Traffic Delay Index by comparing real-time flow speed 
+against baseline free-flow velocity. For example, during evening peak hours on the 
+Wardha Road corridor or Pardi Flyover, sudden velocity drops immediately elevate the 
+local risk tensor in our machine learning pipeline before physical gridlock occurs."
 
-SPEAKER:
-"Before any recommendation reaches a dispatcher, it must pass through Stage 7: 
-Our Central Integrity Citadel — The Decision Review Engine.
 
-The system calculates a 12-parameter Decision Assurance Score (DAS, 0 to 100):
-- Incident Severity (15%)
-- Sector Coverage Safety (12%)
-- Traffic Congestion Risk (10%)
-- Unit Availability FSM (10%)
-- Travel ETA Decay (10%)
-- Historical Crime & Black-Spot Density (8%)
-- Equipment & Unit Capability Match (8%)
-- Telemetry Data Freshness (8%)
-- Event & VVIP Schedule Risk (7%)
-- Crew Shift Workload Balance (5%)
-- Prediction Stability Variance (4%)
-- ML Confidence (3%)
+================================================================================
+ 4. INCIDENTS — DIAL 112 CAD STREAM & SEVERITY TRIAGE (3:45 - 4:30)
+================================================================================
 
-HARD CONSTRAINT GATES:
-Numerical scores are never enough in policing. We enforce 5 Hard Constraint Gates:
-1. Unit must be Available or Retaskable.
-2. Unit must possess all required specialized capabilities.
-3. Post-dispatch sector coverage must NOT drop below 60%.
-4. Must not violate active VVIP security cordons.
-5. Telemetry data staleness must not exceed 300 seconds.
+[ON SCREEN]: Click on [Incidents] tab (badge showing active incidents).
+[HIGHLIGHT]: Incident cards classified by severity (Critical Code 3, High Code 2), 
+             caller timestamp, nearest patrol chips, and 1-click dispatch CTA.
 
-If ANY hard constraint fails, the DAS status is instantly overridden to BLOCKED, 
-preventing unsafe dispatch recommendations."
+[SPOKEN SCRIPT]:
+"The Incidents view ingests live emergency 112 CAD calls from citizens and field officers.
 
-----------------------------------------------------------------------------------------
-[SECTION 8: HUMAN COMMAND & IMMUTABLE AUDIT — 5:45 to 6:45]
-----------------------------------------------------------------------------------------
-(Action: Navigate to Section 8 & Final Section: Human Decision & Audit Trail)
+Incidents are dynamically prioritized by severity:
+  • Code 3 Critical collisions with casualty risks trigger automated priority 
+    escalation, pre-allocating the optimal patrol unit and computing the safest, 
+    fastest route through congested intersections.
+  • Dispatchers can review incoming caller logs, exact coordinates, and deploy 
+    coordinated multi-unit escorts in a single click."
 
-SPEAKER:
-"This brings us to our most important constitutional mandate:
-'AI ADVISES. OPERATOR DECIDES.'
 
-The AI NEVER executes unilateral dispatch orders without sworn officer approval. 
-The police commander has three explicit options:
-1. APPROVE: 1-click execution broadcasting CAD dispatches to patrol radios.
-2. MODIFY: Commander re-assigns unit or route with a mandatory reason code.
-3. REJECT: Dismissed with a logged reason that feeds back into continuous model retraining.
+================================================================================
+ 5. RISK INTELLIGENCE — XGBOOST ENGINE & SHAP EXPLAINABILITY (4:30 - 6:00)
+================================================================================
 
-EVERY SINGLE STEP is written to an immutable, cryptographically verifiable audit log 
-using SHA-256 HMAC hashing. We record:
-Input Snapshot -> Model Version -> Softmax Probabilities -> SHAP Weights -> 
-OR-Tools Candidate Matrix -> What-If Penalties -> DAS Review Score -> 
-Commander Override Rationale -> GPS Execution -> Outcome Reconciliation.
+[ON SCREEN]: Click on [Risk Intelligence] tab.
+[HIGHLIGHT]: 30-D Feature Vector, 4-Class Softmax Probabilities (LOW, MEDIUM, HIGH, 
+             CRITICAL), 99.07% Accuracy metrics, and the SHAP Feature Attribution Waterfall.
 
-As we conclude:
-The system does not guarantee that an outcome will always be correct. 
-It guarantees complete, immutable traceability of the decision process."
+[SPOKEN SCRIPT]:
+"This is the core AI engine of Nagpur Pulse: Risk Intelligence.
 
-----------------------------------------------------------------------------------------
-[SECTION 9: LIVE SYSTEM SUMMARY & CLOSING — 6:45 to 7:00]
-----------------------------------------------------------------------------------------
-(Action: Show the multi-zone Admin Hub or Live Overview Map)
+1. MODEL ARCHITECTURE & TRAINING:
+   • Our risk classifier is an XGBoost Gradient-Boosted Decision Tree (GBDT).
+   • Trained on 2,880 observations across all 44 chowks of Nagpur across 8 time windows.
+   • To solve extreme class imbalance (accidents represent <2% of normal traffic time), 
+     we trained the model using SMOTE (Synthetic Minority Over-sampling Technique) 
+     combined with class-weighted loss penalties.
+   • Achieves 99.07% overall accuracy, 100% Critical Recall (zero missed catastrophic 
+     incidents), and an ultra-fast 3.9 ms inference latency.
 
-SPEAKER:
-"Nagpur Pulse is live today across all 5 municipal zones—Central, North, East, West, 
-and South. It is verified, deterministic, and built to transform urban safety from 
-reactive guesswork into explainable, accountable civic intelligence.
+2. EXPLAINABLE AI (XAI VIA SHAP WATERFALL):
+   • We never present an AI prediction as a black box. For every intersection, 
+     dispatchers see the exact local SHAP feature contributions:
+       + Traffic Delay Index (+0.21)
+       + Historical 6-Year Accident Density (+0.18)
+       + Surface Rainfall Intensity (+0.14)
+       - Recent Police Patrol Presence (-0.09)
+   • Officers know exactly WHY the AI predicted High Risk, fostering institutional trust."
 
-Thank you, and we are now open for questions!"
-========================================================================================
-                                 END OF SCRIPT
-========================================================================================
+
+================================================================================
+ 6. WEATHER HEATMAP — MONSOON RADAR & FRICTION DECAY (6:00 - 6:45)
+================================================================================
+
+[ON SCREEN]: Click on [Weather Heatmap] tab.
+[HIGHLIGHT]: Chowk-by-chowk precipitation radar (mm/h), surface waterlogging risk 
+             index, road friction decay percentages, and storm alert banners.
+
+[SPOKEN SCRIPT]:
+"The Weather Heatmap delivers micro-climate intelligence across Nagpur.
+
+Monsoon rains severely compromise braking friction and cause rapid waterlogging at 
+low-lying chowks like Kapsi Bridge, Gaddi Godam Underpass, and Automotive Chowk. 
+Our system computes a continuous Weather Impact Coefficient that automatically adjusts 
+incident risk scores and injects safe travel ETA buffers for responding emergency units."
+
+
+================================================================================
+ 7. COVERAGE — SPATIAL FLEET DENSITY & VACUUM PREVENTION (6:45 - 7:30)
+================================================================================
+
+[ON SCREEN]: Click on [Coverage] tab.
+[HIGHLIGHT]: 5-Zone coverage percentage gauges, patrol radius circles, coverage deficit 
+             alerts, and the 60% minimum sector safety benchmark.
+
+[SPOKEN SCRIPT]:
+"In Coverage, we monitor spatial police density across Central, North, East, West, 
+and South zones.
+
+Our system enforces a mandatory 60% minimum coverage benchmark per sector. If a proposed 
+dispatch would drain a zone below 60%, the system flags a 'Coverage Deficit Warning' 
+and calculates multi-sector shifts to maintain civic safety across all neighborhoods."
+
+
+================================================================================
+ 8. ZONE ADMIN — MULTI-ZONE COMMAND & HITL DECISIONS LEDGER (7:30 - 8:30)
+================================================================================
+
+[ON SCREEN]: Click on [Zone Admin] tab.
+[HIGHLIGHT]: 5-Zone Comparative Matrix Cards, Live Alerts Triage, Human-in-the-Loop 
+             (HITL) Decisions Ledger (APPROVE, MODIFY, REJECT), and Zone Commanders Roster.
+
+[SPOKEN SCRIPT]:
+"The Zone Admin Hub provides unified executive command across the entire city.
+
+Senior commanders can compare all 5 zones side-by-side—tracking speed profiles, 
+congestion rates, and stationed personnel.
+
+Crucially, this view houses our Human-in-the-Loop (HITL) Governance Ledger:
+Under our constitutional doctrine—'AI ADVISES. OPERATOR DECIDES.'—the AI cannot 
+autonomously deploy weapons or field units. Every recommendation acted upon by an 
+officer is logged here as APPROVED, MODIFIED, or REJECTED with mandatory justification codes."
+
+
+================================================================================
+ 9. AUDIT LOGS — SHA-256 HMAC CRYPTOGRAPHIC CHAIN (8:30 - 9:15)
+================================================================================
+
+[ON SCREEN]: Click on [Audit Logs] tab. Click on any log row to inspect cryptographic hash.
+[HIGHLIGHT]: SHA-256 HMAC integrity hashes, timestamped action logs, IP addresses, 
+             and export verification report.
+
+[SPOKEN SCRIPT]:
+"Finally, we come to Audit Logs—our tamper-proof accountability backbone.
+
+Every single telemetry snapshot, model inference, SHAP attribution, OR-Tools optimization, 
+commander override, and dispatch order is cryptographically chained using SHA-256 HMAC hashing. 
+Any unauthorized database tampering breaks the hash verification sequence immediately.
+
+To conclude our presentation:
+'Nagpur Pulse does not guarantee that every human outcome will be perfect. 
+ It guarantees complete, immutable traceability and explainability of every decision.'
+
+Thank you, Judges. We are ready for your technical questions!"
+
+
+================================================================================
+ QUICK TECHNICAL Q&A REFERENCE CARD FOR PRESENTERS
+================================================================================
+
+Q1: What machine learning model is used for risk prediction?
+A1: XGBoost Gradient-Boosted Decision Tree (GBDT) with 30 engineered spatial-temporal 
+    features, trained on 2,880 observations with SMOTE oversampling. 
+    Achieves 99.07% accuracy, 100% Critical Recall, and 3.9ms inference latency.
+
+Q2: How is Explainability (XAI) implemented?
+A2: Using TreeSHAP (SHapley Additive exPlanations) computed at inference time. It outputs 
+    exact positive and negative feature contributions (+0.21 traffic, +0.18 blackspots, 
+    -0.09 patrol presence) rendered in an interactive waterfall chart.
+
+Q3: How does the dispatch optimization work?
+A3: Powered by Google OR-Tools CP-SAT solver. It optimizes a multi-objective cost function: 
+    Traffic ETA (40%), Capability Match (25%), Consequence Risk (20%), and Fatigue (15%), 
+    subject to 5 Hard Constraint Gates.
+
+Q4: How is data tamper-proofed?
+A4: Using SHA-256 HMAC cryptographic hashing chaining telemetry state, AI advice, 
+    officer ID, decision timestamp, and reason codes into an immutable audit trail.
+
+================================================================================
+ END OF DEMONSTRATION SCRIPT
+================================================================================
