@@ -46,15 +46,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
     <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur-2xl border-b border-slate-800 px-4 py-2 shadow-2xl">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left Branding & Zone Badge */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 hover:scale-105 transition-transform">
+        <div className="flex items-center gap-3 shrink-0 select-none">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 hover:scale-105 transition-transform">
             <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]" />
           </div>
-          <div>
+          <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
-              <h1 className="font-extrabold tracking-tight text-lg text-slate-100 font-sans">NAGPUR PULSE</h1>
+              <h1 className="font-black tracking-tight text-base sm:text-lg text-slate-100 font-sans whitespace-nowrap">
+                NAGPUR PULSE
+              </h1>
               {/* Active Zone Header Badge */}
-              <span className={`px-2 py-0.5 text-[10px] font-mono font-extrabold uppercase rounded-md border shadow-sm ${
+              <span className={`px-2 py-0.5 text-[9px] font-mono font-extrabold uppercase rounded-md border shadow-sm whitespace-nowrap ${
                 activeZone === 'CENTRAL'
                   ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                   : activeZone === 'NORTH'
@@ -70,7 +72,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
                 {activeZone === 'ALL' ? 'CITY-WIDE' : `${activeZone} ZONE`}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">AI Traffic Intelligence & Police Command Platform</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono whitespace-nowrap leading-tight">
+              AI Traffic Intelligence & Police Command Platform
+            </p>
           </div>
         </div>
 
