@@ -47,8 +47,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left Branding & Zone Badge */}
         <div className="flex items-center gap-3 shrink-0 select-none">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 hover:scale-105 transition-transform">
-            <img src="/assets/logo.png" alt="Nagpur Pulse Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]" />
+          <div className="h-10 sm:h-12 w-10 sm:w-12 flex items-center justify-center shrink-0">
+            <img
+              src="/assets/logo.png"
+              alt="Nagpur Pulse Logo"
+              className="h-full w-auto max-h-12 object-contain filter drop-shadow-[0_0_12px_rgba(59,130,246,0.45)] hover:scale-105 transition-transform"
+            />
           </div>
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
@@ -72,17 +76,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
                 {activeZone === 'ALL' ? 'CITY-WIDE' : `${activeZone} ZONE`}
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono whitespace-nowrap leading-tight">
-              AI Traffic Intelligence & Police Command Platform
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono whitespace-nowrap leading-tight hidden sm:block">
+              AI Traffic Intelligence & Police Command
             </p>
           </div>
         </div>
 
         {/* Center Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+        <nav className="hidden lg:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono shrink min-w-0">
           <button
             onClick={() => setCurrentTab('dashboard')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
               currentTab === 'dashboard' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
@@ -90,26 +94,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           </button>
           <button
             onClick={() => setCurrentTab('police')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
               currentTab === 'police' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            Police Command
+            Police
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
               {availableUnits}
             </span>
           </button>
           <button
             onClick={() => setCurrentTab('traffic')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
               currentTab === 'traffic' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            Traffic Monitor
+            Traffic
           </button>
           <button
             onClick={() => setCurrentTab('incidents')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
               currentTab === 'incidents' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
@@ -122,23 +126,23 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           </button>
           <button
             onClick={() => setCurrentTab('risk')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
               currentTab === 'risk' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            Risk Intelligence
+            Risk AI
           </button>
           <button
             onClick={() => setCurrentTab('weather')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
               currentTab === 'weather' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            Weather Heatmap
+            Weather
           </button>
           <button
             onClick={() => setCurrentTab('coverage')}
-            className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
+            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
               currentTab === 'coverage' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
@@ -148,7 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           {/* Admin Navigation Tabs */}
           <button
             onClick={() => setCurrentTab('zone-admin')}
-            className={`px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 whitespace-nowrap ${
               currentTab === 'zone-admin'
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
                 : 'text-amber-400 hover:text-amber-200 hover:bg-slate-800/60'
@@ -161,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           {user?.role === 'SYSTEM_ADMIN' && (
             <button
               onClick={() => setCurrentTab('users')}
-              className={`px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
                 currentTab === 'users' ? 'bg-indigo-600 text-white shadow' : 'text-indigo-400 hover:text-indigo-200 hover:bg-slate-800/50'
               }`}
             >
@@ -173,12 +177,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ZONE_ADMIN') && (
             <button
               onClick={() => setCurrentTab('audit')}
-              className={`px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
                 currentTab === 'audit' ? 'bg-indigo-600 text-white shadow' : 'text-cyan-400 hover:text-cyan-200 hover:bg-slate-800/50'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Audit Logs</span>
+              <span>Audit</span>
             </button>
           )}
         </nav>
