@@ -17,8 +17,8 @@ import { MobilePairingView } from '../components/auth/MobilePairingView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  const { isLoginModalOpen, setIsLoginModalOpen, user } = useAuth();
-  const isSystemAdmin = user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL';
+  const { isLoginModalOpen, setIsLoginModalOpen, user, activeZone } = useAuth();
+  const isAllZoneAdmin = activeZone === 'ALL' && (user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL');
   const { apiSyncState } = useNagpurPulseStore();
 
   // Detect mobile phone QR scan URL parameters
@@ -63,7 +63,7 @@ function AppContent() {
         {currentTab === 'risk' && <RiskIntelligenceView />}
         {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
-        {currentTab === 'zone-admin' && (isSystemAdmin ? <ZoneAdminHubView /> : <OverviewDashboard onNavigateTab={(tab) => setCurrentTab(tab)} />)}
+        {currentTab === 'zone-admin' && (isAllZoneAdmin ? <ZoneAdminHubView /> : <OverviewDashboard onNavigateTab={(tab) => setCurrentTab(tab)} />)}
         {currentTab === 'users' && <UserManagementView />}
         {currentTab === 'audit' && <AuditLogsView />}
       </main>

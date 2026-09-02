@@ -141,8 +141,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
             Coverage
           </button>
 
-          {/* Admin Navigation Tabs - Accessible only to All-Zone / System Admins */}
-          {(user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL') && (
+          {/* Admin Navigation Tabs - Accessible only when in All-Zone mode for All-Zone Admins */}
+          {activeZone === 'ALL' && (user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL') && (
             <button
               onClick={() => setCurrentTab('zone-admin')}
               className={`px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 ${
@@ -156,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
             </button>
           )}
 
-          {user?.role === 'SYSTEM_ADMIN' && (
+          {activeZone === 'ALL' && user?.role === 'SYSTEM_ADMIN' && (
             <button
               onClick={() => setCurrentTab('users')}
               className={`px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 ${

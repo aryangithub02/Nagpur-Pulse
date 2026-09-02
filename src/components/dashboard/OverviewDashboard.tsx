@@ -7,8 +7,8 @@ import { WeatherForecastTimeline } from '../weather/WeatherForecastTimeline';
 import { Shield, AlertTriangle, Activity, Navigation, Clock, ChevronRight, Zap, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void }> = ({ onNavigateTab }) => {
-  const { user } = useAuth();
-  const isSystemAdmin = user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL';
+  const { user, activeZone } = useAuth();
+  const isAllZoneAdmin = activeZone === 'ALL' && (user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL');
   const {
     units,
     incidents,
@@ -27,7 +27,7 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Overview Top Stats Ribbon */}
-      <section className={`grid grid-cols-1 sm:grid-cols-2 ${isSystemAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
+      <section className={`grid grid-cols-1 sm:grid-cols-2 ${isAllZoneAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
         {/* KPI 1: Active Emergency Incidents */}
         <div
           onClick={() => onNavigateTab('incidents')}
@@ -112,8 +112,8 @@ export const OverviewDashboard: React.FC<{ onNavigateTab: (tab: string) => void 
           </p>
         </div>
 
-        {/* KPI 5: Multi-Zone Admin Hub (System Admins Only) */}
-        {isSystemAdmin && (
+        {/* KPI 5: Multi-Zone Admin Hub (All-Zone Admins Only) */}
+        {isAllZoneAdmin && (
           <div
             onClick={() => onNavigateTab('zone-admin')}
             className="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-2xl shadow-xl transition-all cursor-pointer group"
