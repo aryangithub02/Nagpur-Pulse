@@ -97,11 +97,14 @@ const ZONES_DATA: ZoneOption[] = [
   },
 ];
 
+import { QRDeviceAuthenticator } from './QRDeviceAuthenticator';
+
 export const LoginModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ isOpen, onClose }) => {
   const { login, setActiveZone } = useAuth();
+  const [authMode, setAuthMode] = useState<'qr' | 'password'>('qr');
   const [selectedZone, setSelectedZoneState] = useState<ZoneCode>('CENTRAL');
   const [username, setUsername] = useState<string>('np.central.ops');
   const [password, setPassword] = useState<string>('');
@@ -138,7 +141,9 @@ export const LoginModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 font-sans overflow-y-auto">
-      <div className="bg-[#0b0d19] border border-slate-700/80 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative text-slate-100 space-y-6 my-auto animate-in fade-in zoom-in-95 duration-200">
+      <div className={`bg-[#0b0d19] border border-slate-700/80 rounded-3xl w-full p-6 sm:p-8 shadow-2xl relative text-slate-100 space-y-6 my-auto animate-in fade-in zoom-in-95 duration-200 ${
+        authMode === 'qr' ? 'max-w-4xl' : 'max-w-xl'
+      }`}>
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -149,31 +154,69 @@ export const LoginModal: React.FC<{
         </button>
 
         {/* Header Ribbon */}
-        <div className="flex items-center gap-4 border-b border-slate-800/80 pb-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-700 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30 border border-indigo-400/40 shrink-0">
-            <Shield className="w-7 h-7 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-extrabold text-xl tracking-tight text-white">NAGPUR PULSE</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm">
-                ARGON2ID AUTH
-              </span>
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 pr-10">
+          <div className="flex items-center gap-4">
+            <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-indigo-700 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30 border border-indigo-400/40 shrink-0">
+              <Shield className="w-7 h-7 animate-pulse" />
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Police Command & Zone-Based Operational Login
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-extrabold text-xl tracking-tight text-white">NAGPUR PULSE</h2>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm">
+                  {authMode === 'qr' ? 'ASYMMETRIC QR AUTH' : 'ARGON2ID AUTH'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 font-mono mt-0.5">
+                Police Command & Officer Authentication Terminal
+              </p>
+            </div>
           </div>
         </div>
 
-        {error && (
-          <div className="p-3.5 bg-rose-950/90 border border-rose-500/50 rounded-2xl text-rose-200 text-xs font-mono flex items-center gap-2.5 shadow-lg animate-in slide-in-from-top-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span className="font-bold">{error}</span>
-          </div>
-        )}
+        {/* Auth Mode Switcher Tab Bar */}
+        <div className="flex items-center p-1 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-xs">
+          <button
+            type="button"
+            onClick={() => setAuthMode('qr')}
+            className={`flex-1 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+              authMode === 'qr'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+            }`}
+          >
+            <KeyRound className="w-4 h-4 text-cyan-300" />
+            <span>🔐 QR Device Authenticator (Asymmetric Keypair)</span>
+          </button>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+          <button
+            type="button"
+            onClick={() => setAuthMode('password')}
+            className={`flex-1 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+              authMode === 'password'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+            }`}
+          >
+            <Lock className="w-4 h-4 text-amber-300" />
+            <span>🔑 Password Login (Argon2id)</span>
+          </button>
+        </div>
+
+        {/* ------------------------------------------------------------------- */}
+        {/* MODE 1: QR DEVICE AUTHENTICATOR */}
+        {/* ------------------------------------------------------------------- */}
+        {authMode === 'qr' ? (
+          <QRDeviceAuthenticator
+            onSuccess={(userData, token) => {
+              onClose();
+            }}
+            onClose={onClose}
+          />
+        ) : (
+          /* ------------------------------------------------------------------- */
+          /* MODE 2: PASSWORD LOGIN FORM */
+          /* ------------------------------------------------------------------- */
+          <form onSubmit={handleSubmit} className="space-y-5">
           {/* 1. OPERATIONAL ZONE SELECTOR */}
           <div className="space-y-2">
             <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -287,6 +330,7 @@ export const LoginModal: React.FC<{
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
