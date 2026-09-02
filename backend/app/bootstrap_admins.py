@@ -128,51 +128,114 @@ def bootstrap_zones_and_admins(db: Session = None):
         db.commit()
         logger.info("Zones and Admin accounts successfully bootstrapped.")
 
-        # Seed initial audit logs if table is empty
+        # Seed initial audit logs if table is empty or missing zone coverage
         try:
             from app.models.audit_log import AuditLog
-            if db.query(AuditLog).count() == 0:
+            from datetime import datetime, timedelta
+            existing_count = db.query(AuditLog).count()
+            if existing_count < 5:
+                now = datetime.utcnow()
                 sample_audit_logs = [
                     AuditLog(
                         user_id=1,
-                        username="np.central.ops",
+                        username="admin",
+                        role="SYSTEM_ADMIN",
+                        zone_code="ALL",
+                        action="SYSTEM_INIT",
+                        resource_type="PLATFORM",
+                        resource_id="SYS-BOOT-01",
+                        details="Nagpur Pulse multi-zone command system initialized with SHA-256 tamper-evident chaining.",
+                        timestamp=now - timedelta(hours=5),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=5,
+                        username="np.south.ops",
                         role="ZONE_ADMIN",
-                        zone_code="CENTRAL",
-                        action="DECISION_ACCEPT",
+                        zone_code="SOUTH",
+                        action="LOGIN_SUCCESS",
+                        resource_type="AUTH_SESSION",
+                        resource_id="SES-SOUTH-101",
+                        details="South Zone Commander authenticated with Argon2id credentials from South Nagpur Command Station.",
+                        timestamp=now - timedelta(minutes=45),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=5,
+                        username="np.south.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="SOUTH",
+                        action="DISPATCH_APPROVED",
                         resource_type="DECISION_RECORD",
-                        resource_id="DEC-2026-0041",
-                        details="Controller ACCEPTED AI recommendation: Unit PU001 dispatched to Samvidhan Square (RBI Chowk).",
-                        timestamp=datetime.utcnow(),
+                        resource_id="DEC-2026-SOUTH-08",
+                        details="Commander APPROVED AI recommendation: Dispatched Unit P17 to Chhatrapati Nagar Square collision.",
+                        timestamp=now - timedelta(minutes=30),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=5,
+                        username="np.south.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="SOUTH",
+                        action="DECISION_MODIFY",
+                        resource_type="DECISION_RECORD",
+                        resource_id="DEC-2026-SOUTH-09",
+                        details="Commander OVERRIDE: Modified dispatch to Unit P12 for Ajni Chowk congestion clearance (DAS: 88.5).",
+                        timestamp=now - timedelta(minutes=15),
                         success=True
                     ),
                     AuditLog(
                         user_id=2,
-                        username="np.west.controller",
-                        role="CONTROLLER",
+                        username="np.central.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="CENTRAL",
+                        action="DISPATCH_APPROVED",
+                        resource_type="DECISION_RECORD",
+                        resource_id="DEC-2026-0041",
+                        details="Controller APPROVED AI recommendation: Unit P01 dispatched to Samvidhan Square (RBI Chowk).",
+                        timestamp=now - timedelta(hours=2),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=3,
+                        username="np.north.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="NORTH",
+                        action="DISPATCH_APPROVED",
+                        resource_type="DECISION_RECORD",
+                        resource_id="DEC-2026-NORTH-04",
+                        details="North Zone Commander dispatched Unit P03 to Automotive Chowk multi-lane blockage.",
+                        timestamp=now - timedelta(hours=1, minutes=20),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=4,
+                        username="np.east.ops",
+                        role="ZONE_ADMIN",
+                        zone_code="EAST",
+                        action="LOGIN_SUCCESS",
+                        resource_type="AUTH_SESSION",
+                        resource_id="SES-EAST-404",
+                        details="East Zone Command active session established for Kalamna & Pardi sectors.",
+                        timestamp=now - timedelta(hours=3),
+                        success=True
+                    ),
+                    AuditLog(
+                        user_id=4,
+                        username="np.west.ops",
+                        role="ZONE_ADMIN",
                         zone_code="WEST",
                         action="DECISION_MODIFY",
                         resource_type="DECISION_RECORD",
                         resource_id="DEC-2026-0040",
-                        details="Controller MODIFIED recommendation: Reassigned to closer Unit PU002 for Law College Square.",
-                        timestamp=datetime.utcnow(),
+                        details="Controller MODIFIED recommendation: Reassigned to closer Unit P02 for Law College Square.",
+                        timestamp=now - timedelta(hours=2, minutes=10),
                         success=True
                     ),
-                    AuditLog(
-                        user_id=1,
-                        username="np.central.ops",
-                        role="ZONE_ADMIN",
-                        zone_code="CENTRAL",
-                        action="LOGIN",
-                        resource_type="AUTH_SESSION",
-                        resource_id="SES-98214",
-                        details="Authenticated zone operator login session initiated with Argon2id token.",
-                        timestamp=datetime.utcnow(),
-                        success=True
-                    )
                 ]
                 db.add_all(sample_audit_logs)
                 db.commit()
-                logger.info("Initial Audit Logs automatically seeded into database.")
+                logger.info("Comprehensive multi-zone Audit Logs automatically seeded into database.")
         except Exception as audit_err:
             logger.warning(f"Initial audit logs seeding skipped: {audit_err}")
 
