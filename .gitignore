@@ -8,6 +8,12 @@ node_modules/
 dist/
 .output/
 
+# Media & Videos
+*.mp4
+*.mov
+*.avi
+*.mkv
+
 # C extensions
 *.so
 
