@@ -113,3 +113,70 @@ export const ZONE_CENTERS: Record<string, { lat: number; lng: number; zoom: numb
   SOUTH: { lat: 21.1120, lng: 79.0820, zoom: 13.8, name: 'Zone 4 - South' },
   WEST: { lat: 21.1380, lng: 79.0550, zoom: 13.8, name: 'Zone 5 - West' },
 };
+
+export interface TrafficCongestionClassification {
+  level: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+  color: string;
+  badgeClass: string;
+  speedColor: string;
+  label: string;
+}
+
+/**
+ * Standardized Traffic Congestion Classifier:
+ * - CRITICAL (Red #EF4444): Active Incident / Gridlock / Speed < 15 km/h
+ * - HIGH (Orange #F97316): Heavy Congestion / Speed 15-25 km/h
+ * - MODERATE (Yellow #EAB308): Moderate Congestion / Speed 25-35 km/h
+ * - LOW (Green #22C55E): Fluid Flow / Speed >= 35 km/h
+ */
+export function getTrafficCongestion(
+  speed: number,
+  hasIncident: boolean = false,
+  rawCongestion?: string,
+  rawLevel?: string
+): TrafficCongestionClassification {
+  const normCongestion = (rawCongestion || '').toLowerCase();
+  const normLevel = (rawLevel || '').toLowerCase();
+
+  // 1. CRITICAL -> RED
+  if (hasIncident || speed < 15 || normLevel === 'gridlock' || normCongestion === 'gridlock') {
+    return {
+      level: 'CRITICAL',
+      color: '#EF4444',
+      badgeClass: 'bg-[#1a0505]/95 text-red-300 border-red-500/80 shadow-red-500/20',
+      speedColor: 'text-rose-400',
+      label: 'Critical (Gridlock)',
+    };
+  }
+
+  // 2. HIGH -> ORANGE
+  if (speed < 25 || normLevel === 'heavy' || normCongestion === 'heavy') {
+    return {
+      level: 'HIGH',
+      color: '#F97316',
+      badgeClass: 'bg-[#1a0e05]/95 text-orange-300 border-orange-500/80 shadow-orange-500/20',
+      speedColor: 'text-orange-400',
+      label: 'High (Heavy)',
+    };
+  }
+
+  // 3. MODERATE -> YELLOW
+  if (speed < 35 || normLevel === 'moderate' || normCongestion === 'moderate') {
+    return {
+      level: 'MODERATE',
+      color: '#EAB308',
+      badgeClass: 'bg-[#1a1705]/95 text-yellow-300 border-yellow-500/80 shadow-yellow-500/20',
+      speedColor: 'text-yellow-400',
+      label: 'Moderate',
+    };
+  }
+
+  // 4. LOW -> GREEN
+  return {
+    level: 'LOW',
+    color: '#22C55E',
+    badgeClass: 'bg-[#051a0d]/95 text-emerald-300 border-emerald-500/80 shadow-emerald-500/20',
+    speedColor: 'text-emerald-400',
+    label: 'Fluid (Low)',
+  };
+}

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
 import { useNagpurPulseStore } from '../../store/nagpurPulseStore';
 import { useAuth } from '../../store/authContext';
-import { isJunctionInZone, ZONE_CENTERS } from '../../utils/geoUtils';
+import { isJunctionInZone, ZONE_CENTERS, getTrafficCongestion } from '../../utils/geoUtils';
 import { NAGPUR_JUNCTIONS, NAGPUR_CENTER_COORDINATES } from '../../data/nagpurJunctions';
 import { NAGPUR_ARTERIAL_CORRIDORS } from '../../data/nagpurCorridors';
 import { getTomTomApiKey } from '../../services/tomtomService';
@@ -477,56 +477,16 @@ export const UnifiedMap: React.FC<{
               Math.abs(inc.location[1] - junction.longitude) < 0.003)
         );
 
-        // Traffic Congestion Hierarchy:
-        // 1. CRITICAL (Red #EF4444): Active Incident / Gridlock / Speed < 15 km/h / Critical Priority
-        // 2. HIGH (Orange #F97316): Heavy Congestion / Speed 15-25 km/h / High Priority
-        // 3. MODERATE (Yellow #EAB308): Moderate Congestion / Speed 25-35 km/h / Medium Priority
-        // 4. LOW (Green #22C55E): Fluid Flow / Speed >= 35 km/h / Normal / Low Priority
-        const rawCongestion = (junction.trafficCongestion || '').toLowerCase();
-        const rawPriority = (junction.priorityLevel || '').toLowerCase();
-        const rawLevel = (level || '').toLowerCase();
-
-        let congestionRank: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' = 'LOW';
-
-        if (
-          hasIncident ||
-          rawLevel === 'gridlock' ||
-          rawCongestion === 'gridlock' ||
-          rawPriority === 'critical' ||
-          speed < 15
-        ) {
-          congestionRank = 'CRITICAL';
-        } else if (
-          rawLevel === 'heavy' ||
-          rawCongestion === 'heavy' ||
-          rawPriority === 'high' ||
-          speed < 25
-        ) {
-          congestionRank = 'HIGH';
-        } else if (
-          rawLevel === 'moderate' ||
-          rawCongestion === 'moderate' ||
-          rawPriority === 'medium' ||
-          speed < 35
-        ) {
-          congestionRank = 'MODERATE';
-        } else {
-          congestionRank = 'LOW';
-        }
-
-        let pinColor = '#22C55E'; // Low -> Green
-        let speedBadgeClass = 'bg-[#051a0d]/95 text-emerald-300 border-emerald-500/80 shadow-emerald-500/20';
-
-        if (congestionRank === 'CRITICAL') {
-          pinColor = '#EF4444'; // Critical -> Red
-          speedBadgeClass = 'bg-[#1a0505]/95 text-red-300 border-red-500/80 shadow-red-500/20';
-        } else if (congestionRank === 'HIGH') {
-          pinColor = '#F97316'; // High -> Orange
-          speedBadgeClass = 'bg-[#1a0e05]/95 text-orange-300 border-orange-500/80 shadow-orange-500/20';
-        } else if (congestionRank === 'MODERATE') {
-          pinColor = '#EAB308'; // Moderate -> Yellow
-          speedBadgeClass = 'bg-[#1a1705]/95 text-yellow-300 border-yellow-500/80 shadow-yellow-500/20';
-        }
+        // Standardized Traffic Congestion Classifier
+        const congestionInfo = getTrafficCongestion(
+          speed,
+          hasIncident,
+          junction.trafficCongestion,
+          level
+        );
+        const pinColor = congestionInfo.color;
+        const speedBadgeClass = congestionInfo.badgeClass;
+        const congestionRank = congestionInfo.level;
 
         // Show label pill ONLY on hover or if explicitly set to 'all'
         let showLabelAlways = false;
@@ -968,28 +928,46 @@ export const UnifiedMap: React.FC<{
           </div>
 
           {/* Simple Metrics Row */}
-          <div className="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center font-mono">
-            <div>
-              <div className="text-[10px] text-slate-400">Speed</div>
-              <div className="text-sm font-black text-emerald-400 mt-0.5">
-                {selectedState?.metrics?.currentSpeed || 35} <span className="text-[10px] font-normal text-slate-500">km/h</span>
-              </div>
-            </div>
+          {(() => {
+            const curSpeed = selectedState?.metrics?.currentSpeed || 35;
+            const curHasIncident = incidents.some(
+              (inc) =>
+                inc.nearestJunction?.id === selectedJunction.id ||
+                (Math.abs(inc.location[0] - selectedJunction.latitude) < 0.003 &&
+                  Math.abs(inc.location[1] - selectedJunction.longitude) < 0.003)
+            );
+            const curCongestion = getTrafficCongestion(
+              curSpeed,
+              curHasIncident,
+              selectedJunction.trafficCongestion,
+              selectedState?.metrics?.congestionLevel
+            );
 
-            <div>
-              <div className="text-[10px] text-slate-400">Status</div>
-              <div className="text-xs font-bold mt-1 capitalize text-amber-300">
-                {selectedState?.metrics?.congestionLevel || 'Fluid'}
-              </div>
-            </div>
+            return (
+              <div className="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center font-mono">
+                <div>
+                  <div className="text-[10px] text-slate-400">Speed</div>
+                  <div className={`text-sm font-black mt-0.5 ${curCongestion.speedColor}`}>
+                    {curSpeed} <span className="text-[10px] font-normal text-slate-500">km/h</span>
+                  </div>
+                </div>
 
-            <div>
-              <div className="text-[10px] text-slate-400">Delay</div>
-              <div className="text-sm font-black text-rose-400 mt-0.5">
-                +{Math.round((selectedState?.metrics?.delaySeconds || 0) / 60)}m
+                <div>
+                  <div className="text-[10px] text-slate-400">Status</div>
+                  <div className="text-xs font-black mt-1 font-mono uppercase" style={{ color: curCongestion.color }}>
+                    {curCongestion.level}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[10px] text-slate-400">Delay</div>
+                  <div className="text-sm font-black text-rose-400 mt-0.5">
+                    +{Math.round((selectedState?.metrics?.delaySeconds || 0) / 60)}m
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Weather Impact Section inside Junction Inspector Card */}
           {weatherPoints.length > 0 && (() => {
