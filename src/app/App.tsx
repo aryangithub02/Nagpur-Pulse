@@ -13,41 +13,11 @@ import { WeatherImpactHeatmapView } from '../components/weather/WeatherImpactHea
 import { UserManagementView } from '../components/admin/UserManagementView';
 import { AuditLogsView } from '../components/admin/AuditLogsView';
 import { ZoneAdminHubView } from '../components/admin/ZoneAdminHubView';
-import { MobilePairingView } from '../components/auth/MobilePairingView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  const { isLoginModalOpen, setIsLoginModalOpen, user, activeZone } = useAuth();
-  const isAllZoneAdmin = activeZone === 'ALL' && (user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL');
+  const { isLoginModalOpen, setIsLoginModalOpen } = useAuth();
   const { apiSyncState } = useNagpurPulseStore();
-
-  // Detect mobile phone QR scan URL parameters
-  const [mobilePairData, setMobilePairData] = useState<{ sessionId: string; challenge: string } | null>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const session = params.get('pair_session') || params.get('session');
-      const challenge = params.get('challenge') || '';
-      if (session) {
-        return { sessionId: session, challenge };
-      }
-    }
-    return null;
-  });
-
-  // If opened via QR scan on a phone, show the Mobile Pairing & Authenticator View
-  if (mobilePairData) {
-    return (
-      <MobilePairingView
-        sessionId={mobilePairData.sessionId}
-        challenge={mobilePairData.challenge}
-        onDone={() => {
-          // Clear URL query params and return to dashboard
-          window.history.replaceState({}, document.title, window.location.pathname);
-          setMobilePairData(null);
-        }}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white border-box">
@@ -63,7 +33,7 @@ function AppContent() {
         {currentTab === 'risk' && <RiskIntelligenceView />}
         {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
-        {currentTab === 'zone-admin' && (isAllZoneAdmin ? <ZoneAdminHubView /> : <OverviewDashboard onNavigateTab={(tab) => setCurrentTab(tab)} />)}
+        {currentTab === 'zone-admin' && <ZoneAdminHubView />}
         {currentTab === 'users' && <UserManagementView />}
         {currentTab === 'audit' && <AuditLogsView />}
       </main>

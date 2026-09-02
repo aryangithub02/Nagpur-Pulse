@@ -41,7 +41,6 @@ from app.routes.api.resource_allocation import router as api_resource_allocation
 # Phase 5 Auth & Admin routers
 from app.routes.auth import router as auth_router
 from app.routes.admin import router as admin_router
-from app.routes.qr_auth import router as qr_auth_router
 from app.routes.api.simulations import router as api_simulations_v1_router
 from app.routes.api.decisions import router as api_decisions_router
 from app.routes.api.decision_review import router as api_decision_review_router
@@ -213,4 +212,3 @@ app.include_router(api_system_router, prefix="/api/v1")
 # Register Phase 5 Auth & Admin Routers
 app.include_router(auth_router)
 app.include_router(admin_router)
-app.include_router(qr_auth_router)
