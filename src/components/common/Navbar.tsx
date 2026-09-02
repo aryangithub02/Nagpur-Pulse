@@ -125,6 +125,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
             Risk Intelligence
           </button>
           <button
+            onClick={() => setCurrentTab('decision-intelligence')}
+            className={`px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 ${
+              currentTab === 'decision-intelligence'
+                ? 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/30 ring-1 ring-cyan-400'
+                : 'text-cyan-400 hover:text-cyan-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span>AI Architecture</span>
+            <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold">
+              XAI
+            </span>
+          </button>
+          <button
             onClick={() => setCurrentTab('weather')}
             className={`px-3 py-1.5 rounded-lg transition-colors font-semibold ${
               currentTab === 'weather' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'

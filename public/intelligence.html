@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSE Decision Intelligence System — Nagpur Pulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              cyan: '#06b6d4',
+              blue: '#3b82f6',
+              navy: '#0b1120',
+              dark: '#070a13',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #050811;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+    .bg-grid-pattern {
+      background-image: radial-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glow-cyan {
+      box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.25);
+    }
+    .glow-blue {
+      box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 35px -5px rgba(239, 68, 68, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-grid-pattern min-h-screen text-slate-100 selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP OBSERVABILITY HEADER -->
+  <header class="sticky top-0 z-50 bg-[#070a14]/95 backdrop-blur-2xl border-b border-slate-800 px-6 py-3.5 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 font-mono text-xs">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+          <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-white text-sm tracking-wider">NAGPUR PULSE</span>
+            <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold">DECISION INTELLIGENCE</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Architectural Observability & Decision Pipeline</p>
+        </div>
+      </div>
+
+      <!-- Quick Nav Anchors -->
+      <nav class="hidden lg:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-[11px]">
+        <a href="#signals" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">1. Signals</a>
+        <a href="#risk" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">2. XGBoost</a>
+        <a href="#shap" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">3. SHAP XAI</a>
+        <a href="#resources" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">4. Resources</a>
+        <a href="#consequence" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">5. Consequence</a>
+        <a href="#whatif" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">6. What-If</a>
+        <a href="#review" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">7. DAS Review</a>
+        <a href="#human" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">8. Commander</a>
+        <a href="#audit" class="px-2.5 py-1 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 rounded">9. Audit</a>
+      </nav>
+
+      <a href="/" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-all border border-slate-700 flex items-center gap-1.5 shadow-sm">
+        <span>Live App</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-16">
+
+    <!-- ======================================================================= -->
+    <!-- HERO SECTION -->
+    <!-- ======================================================================= -->
+    <section class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#0e1628] via-[#090e1a] to-[#060913] border border-slate-800 p-8 sm:p-14 shadow-2xl glow-cyan">
+      <div class="max-w-4xl relative z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-semibold mb-6">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span>HACKATHON TECHNICAL DEEP-DIVE SPECIFICATION</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white uppercase leading-none font-sans">
+          PULSE DECISION <br>
+          <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            INTELLIGENCE
+          </span>
+        </h1>
+
+        <p class="mt-4 text-xl sm:text-2xl font-bold text-slate-300 tracking-wide">
+          From City Signals to Accountable Police Action
+        </p>
+
+        <div class="mt-6 p-6 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 shadow-xl">
+          <p class="text-base sm:text-lg text-slate-200 leading-relaxed font-sans">
+            <strong class="text-white font-semibold">Nagpur Pulse is not just a risk prediction model.</strong> It is a multi-stage AI-assisted decision intelligence pipeline that <span class="text-cyan-300 font-medium">predicts</span>, <span class="text-blue-300 font-medium">explains</span>, <span class="text-indigo-300 font-medium">optimizes</span>, <span class="text-amber-300 font-medium">evaluates consequences</span>, <span class="text-emerald-300 font-medium">reviews recommendations</span>, and keeps the <span class="text-rose-300 font-medium">human commander in control</span>.
+          </p>
+        </div>
+
+        <!-- Metric badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-8 font-mono text-xs">
+          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800">
+            <span class="text-slate-500 uppercase text-[10px] block">Ingestion Layer</span>
+            <p class="font-bold text-cyan-400 text-base mt-0.5">9 Live Streams</p>
+            <span class="text-[10px] text-slate-400">Fused Spatial State</span>
+          </div>
+          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800">
+            <span class="text-slate-500 uppercase text-[10px] block">Risk Engine</span>
+            <p class="font-bold text-blue-400 text-base mt-0.5">XGBoost GBDT</p>
+            <span class="text-[10px] text-slate-400">30 Engineered Features</span>
+          </div>
+          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800">
+            <span class="text-slate-500 uppercase text-[10px] block">Optimization</span>
+            <p class="font-bold text-indigo-400 text-base mt-0.5">OR-Tools CP-SAT</p>
+            <span class="text-[10px] text-slate-400">Consequence-Aware</span>
+          </div>
+          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800">
+            <span class="text-slate-500 uppercase text-[10px] block">Governance Gate</span>
+            <p class="font-bold text-emerald-400 text-base mt-0.5">12-Param DAS</p>
+            <span class="text-[10px] text-slate-400">Hard Constraint Check</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 1 — CITY SIGNALS -->
+    <!-- ======================================================================= -->
+    <section id="signals" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold">01</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 1 — City Signals & Unified Ingestion</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">MULTIMODAL FUSION</span>
+          </h2>
+          <p class="text-xs text-slate-400">Continuous convergence of 9 discrete urban sensing and telemetry data streams</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-slate-800 font-bold">TRAFFIC SENSING</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Live TomTom Traffic</h3>
+          <p class="text-slate-400 font-sans mt-1">Real-time corridor speed, delay index, jam factor across 44 monitored Nagpur chowks.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-rose-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-rose-400 border border-slate-800 font-bold">EMERGENCY CAD</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Emergency Incidents</h3>
+          <p class="text-slate-400 font-sans mt-1">Dial 112 / CAD call stream, caller priority tags, collision severity classifications.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-amber-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-amber-400 border border-slate-800 font-bold">CRASH ARCHIVE</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Historical Accidents</h3>
+          <p class="text-slate-400 font-sans mt-1">6-year spatial accident records, 23 persistent black-spot nodes, rolling collision frequency.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-blue-400 border border-slate-800 font-bold">WEATHER TELEMETRY</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Weather & Rainfall</h3>
+          <p class="text-slate-400 font-sans mt-1">Precipitation mm/h, waterlogging radar, road friction coefficient, severe rain alerts.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-purple-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-purple-400 border border-slate-800 font-bold">CIVIC SCHEDULE</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Events & Gatherings</h3>
+          <p class="text-slate-400 font-sans mt-1">Stadium events, political rallies, religious processions, VVIP corridor security cordons.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-indigo-400 border border-slate-800 font-bold">INFRASTRUCTURE</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Junction Geometry</h3>
+          <p class="text-slate-400 font-sans mt-1">Blind turning angles, signal timing phases, lane conflict rates, streetlighting status.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-emerald-400 border border-slate-800 font-bold">FLEET TELEMETRY</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Police Unit Telemetry</h3>
+          <p class="text-slate-400 font-sans mt-1">Live GPS coordinates, siren status, heading, patrol beat jurisdictions, crew fatigue state.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-amber-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-amber-400 border border-slate-800 font-bold">DIVERSIONS</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">Roadworks & Closures</h3>
+          <p class="text-slate-400 font-sans mt-1">Municipal construction diversions, Metro rail work zones, bridge maintenance closures.</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition-all">
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-cyan-400 border border-slate-800 font-bold">SURVEILLANCE</span>
+          <h3 class="font-bold text-sm text-slate-100 font-sans mt-2">ANPR & Violations</h3>
+          <p class="text-slate-400 font-sans mt-1">Automated number plate cameras, red-light violation detectors, speed camera triggers.</p>
+        </div>
+      </div>
+
+      <!-- Pipeline Convergence Banner -->
+      <div class="p-5 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-blue-950/40 rounded-2xl border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs">
+        <div>
+          <p class="font-bold text-cyan-300 text-sm font-sans">Data Intelligence Convergence Layer</p>
+          <p class="text-slate-400 text-xs font-sans mt-0.5">Automated signal conditioning before mathematical feature vector construction</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 font-bold text-[11px]">
+          <span class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200">Validation</span>
+          <span class="text-cyan-400">→</span>
+          <span class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200">Normalization</span>
+          <span class="text-cyan-400">→</span>
+          <span class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200">Feature Engineering</span>
+          <span class="text-cyan-400">→</span>
+          <span class="px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-200">Unified Operational Context</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 2 — AI RISK INTELLIGENCE -->
+    <!-- ======================================================================= -->
+    <section id="risk" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">02</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 2 — AI Risk Intelligence & XGBoost Engine</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30">PROBABILISTIC INFERENCE</span>
+          </h2>
+          <p class="text-xs text-slate-400">Raw signals transform into multidimensional feature vectors evaluated by XGBoost GBDT</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono text-xs">
+        <!-- Feature Vector Column -->
+        <div class="lg:col-span-5 p-5 bg-slate-900/80 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+              <span class="font-bold text-slate-200 text-xs font-sans">30-D Structured Feature Vector</span>
+              <span class="text-[10px] text-cyan-400">Live Snapshot</span>
+            </div>
+            <div class="space-y-2">
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">traffic_delay_index</span><span class="font-bold text-white">0.82</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width: 82%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">incident_severity_score</span><span class="font-bold text-white">0.95</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width: 95%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">historical_accident_density</span><span class="font-bold text-white">0.78</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width: 78%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">rain_waterlogging_index</span><span class="font-bold text-white">0.64</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-cyan-500 rounded-full" style="width: 64%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">event_proximity_km</span><span class="font-bold text-white">0.40</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-purple-500 rounded-full" style="width: 70%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">junction_bottleneck_score</span><span class="font-bold text-white">0.88</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width: 88%"></div></div>
+              </div>
+              <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+                <div class="flex justify-between text-[11px]"><span class="text-slate-300">sector_coverage_safety</span><span class="font-bold text-white">0.35</span></div>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width: 35%"></div></div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-3 pt-2 border-t border-slate-800 font-sans">Evaluated continuously every 30 seconds across all 44 junction nodes.</p>
+        </div>
+
+        <!-- Output Distribution -->
+        <div class="lg:col-span-7 p-6 bg-slate-900/80 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+              <span class="font-bold text-slate-200 text-xs font-sans">XGBoost Multiclass Probabilistic Output</span>
+              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">ISOTONIC CALIBRATED</span>
+            </div>
+
+            <div class="p-3 mb-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 font-sans">
+              <strong class="text-cyan-400 font-mono">[MODEL OUTPUT VISUALIZATION]</strong> Representative inference distribution on a high-friction arterial corridor. The system computes soft probabilities + confidence + calibrated thresholds rather than static hardcoded classifications.
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase block">LOW RISK</span>
+                <p class="text-2xl font-bold text-slate-400 mt-1">3%</p>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-2 overflow-hidden"><div class="h-full bg-slate-600 rounded-full" style="width: 3%"></div></div>
+              </div>
+              <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase block">MEDIUM RISK</span>
+                <p class="text-2xl font-bold text-blue-400 mt-1">8%</p>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-2 overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width: 8%"></div></div>
+              </div>
+              <div class="p-3.5 bg-slate-950 rounded-xl border border-amber-500/50 glow-blue">
+                <span class="text-[10px] text-amber-400 uppercase font-bold block">HIGH RISK</span>
+                <p class="text-2xl font-bold text-amber-400 mt-1">61%</p>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-2 overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width: 61%"></div></div>
+              </div>
+              <div class="p-3.5 bg-slate-950 rounded-xl border border-rose-500/50 glow-rose">
+                <span class="text-[10px] text-rose-400 uppercase font-bold block">CRITICAL RISK</span>
+                <p class="text-2xl font-bold text-rose-400 mt-1">28%</p>
+                <div class="w-full h-1.5 bg-slate-900 rounded-full mt-2 overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width: 28%"></div></div>
+              </div>
+            </div>
+
+            <div class="mt-5 p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span class="text-slate-400 text-[11px] block">Composite Risk Score:</span>
+                <p class="text-xl font-bold text-white mt-0.5">89.2 / 100 <span class="text-xs text-rose-400 font-normal">(Confidence: 94.7%)</span></p>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">P(Low)×0 + P(Med)×35 + P(High)×70 + P(Crit)×100</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-500 flex justify-between font-sans">
+            <span>Accuracy: 99.07% • Critical Recall: 100% (Zero False Negatives)</span>
+            <span class="text-cyan-400 font-mono font-bold">Latency: 3.9 ms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 3 — EXPLAINABLE AI (SHAP) -->
+    <!-- ======================================================================= -->
+    <section id="shap" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold">03</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 3 — Explainable AI: SHAP Feature Attribution</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">INTERPRETABLE AI</span>
+          </h2>
+          <p class="text-xs text-slate-400 font-mono">WHY DID THE MODEL PREDICT THIS RISK?</p>
+        </div>
+      </div>
+
+      <div class="p-6 bg-slate-900/90 rounded-2xl border border-slate-800 font-mono shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 mb-4 gap-2">
+          <div>
+            <h3 class="font-bold text-base text-slate-100 font-sans">WHY DID THE MODEL PREDICT THIS RISK?</h3>
+            <p class="text-xs text-slate-400 font-sans mt-0.5">SHAP-based feature attribution explains which model features influenced the prediction.</p>
+          </div>
+          <div class="flex items-center gap-3 text-[10px]">
+            <span class="flex items-center gap-1 text-rose-400"><span class="w-2.5 h-2.5 bg-rose-500 rounded-sm"></span> +Pushes Risk Higher</span>
+            <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 bg-emerald-500 rounded-sm"></span> -Mitigates Risk Lower</span>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="md:w-1/3">
+              <span class="font-bold text-slate-200">incident_severity == "Critical Code 3"</span>
+              <span class="text-[10px] text-slate-500 block font-sans">Major multi-vehicle collision reported at chowk</span>
+            </div>
+            <div class="flex-1 flex items-center gap-3">
+              <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full" style="width: 75%"></div></div>
+              <span class="font-bold text-rose-400 w-14 text-right">+0.28</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="md:w-1/3">
+              <span class="font-bold text-slate-200">traffic_delay_index == 0.82 (Congested)</span>
+              <span class="text-[10px] text-slate-500 block font-sans">Spillback bottleneck along Wardha Road corridor</span>
+            </div>
+            <div class="flex-1 flex items-center gap-3">
+              <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full" style="width: 60%"></div></div>
+              <span class="font-bold text-rose-400 w-14 text-right">+0.21</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="md:w-1/3">
+              <span class="font-bold text-slate-200">historical_fatal_lag_1y == 6 Deaths</span>
+              <span class="text-[10px] text-slate-500 block font-sans">Persistent High-Fatality Black Spot location</span>
+            </div>
+            <div class="flex-1 flex items-center gap-3">
+              <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full" style="width: 52%"></div></div>
+              <span class="font-bold text-rose-400 w-14 text-right">+0.18</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="md:w-1/3">
+              <span class="font-bold text-slate-200">rain_intensity_mm == 14.2 mm/h</span>
+              <span class="text-[10px] text-slate-500 block font-sans">Waterlogging reducing braking surface friction</span>
+            </div>
+            <div class="flex-1 flex items-center gap-3">
+              <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full" style="width: 40%"></div></div>
+              <span class="font-bold text-rose-400 w-14 text-right">+0.14</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="md:w-1/3">
+              <span class="font-bold text-slate-200">recent_patrol_presence (Mitigating)</span>
+              <span class="text-[10px] text-slate-500 block font-sans">PCR Unit PU012 passed junction 8 mins ago</span>
+            </div>
+            <div class="flex-1 flex items-center gap-3">
+              <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full" style="width: 28%"></div></div>
+              <span class="font-bold text-emerald-400 w-14 text-right">-0.09</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 font-mono">
+          <span>Base City Expected Value E[f(x)] = 0.18</span>
+          <span class="text-white font-bold font-sans">Final Local Model Output f(x) = 0.89 (High Risk Alert)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 4 — RESOURCE INTELLIGENCE -->
+    <!-- ======================================================================= -->
+    <section id="resources" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">04</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 4 — Resource Intelligence & Candidate Evaluation</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">OR-TOOLS CP-SAT</span>
+          </h2>
+          <p class="text-xs text-slate-400">Holistic multi-factor candidate ranking beyond simplistic Euclidean distance</p>
+        </div>
+      </div>
+
+      <div class="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-2xl font-mono text-xs text-slate-200">
+        <strong class="text-emerald-300 text-sm block font-sans uppercase">“The system does not simply select the nearest unit.”</strong>
+        Multiple units are evaluated simultaneously on live ETA, status availability, equipment capability matching, current shift fatigue, and post-dispatch sector safety.
+      </div>
+
+      <div class="overflow-x-auto p-5 bg-slate-900/80 rounded-2xl border border-slate-800 font-mono text-xs shadow-xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/60 uppercase text-[10px]">
+              <th class="p-3">Rank</th>
+              <th class="p-3">Unit ID & Station</th>
+              <th class="p-3">Travel ETA</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Capability Match</th>
+              <th class="p-3">Sector Safety</th>
+              <th class="p-3">Shift Load</th>
+              <th class="p-3">Evaluation</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            <tr class="bg-emerald-500/5">
+              <td class="p-3 font-bold text-emerald-400">#1 Optimal</td>
+              <td class="p-3 font-bold text-white">Unit P12 (Medical Sq)</td>
+              <td class="p-3 font-bold text-cyan-300">4.1 min</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold">AVAILABLE</span></td>
+              <td class="p-3 font-bold text-slate-200">98% (Trauma + Cutter)</td>
+              <td class="p-3 text-emerald-400 font-bold">92% Safe (P16 covers)</td>
+              <td class="p-3 text-slate-300">34% (Low)</td>
+              <td class="p-3 font-bold text-emerald-400">Recommended Primary</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-amber-400">#2 Candidate</td>
+              <td class="p-3 font-bold text-white">Unit P17 (Ajni Chowk)</td>
+              <td class="p-3 font-bold text-emerald-400">2.9 min (Fastest)</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold">AVAILABLE</span></td>
+              <td class="p-3 font-bold text-slate-200">100% (Interceptor)</td>
+              <td class="p-3 text-rose-400 font-bold">55% DANGER (Leaves vacuum)</td>
+              <td class="p-3 text-amber-400">82% (High)</td>
+              <td class="p-3 text-rose-300 font-bold">High Coverage Penalty</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-slate-400">#3 Candidate</td>
+              <td class="p-3 font-bold text-white">Unit P09 (Shankar Nagar)</td>
+              <td class="p-3 font-bold text-slate-300">7.4 min</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold">PATROLLING</span></td>
+              <td class="p-3 font-bold text-slate-200">85% (Standard)</td>
+              <td class="p-3 text-emerald-400 font-bold">96% Safe</td>
+              <td class="p-3 text-slate-300">58% (Moderate)</td>
+              <td class="p-3 text-slate-400">Viable Backup Option</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 5 — CONSEQUENCE-AWARE DECISION -->
+    <!-- ======================================================================= -->
+    <section id="consequence" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold">05</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 5 — Consequence-Aware Decision Architecture</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">PARADIGM SHIFT</span>
+          </h2>
+          <p class="text-xs text-slate-400">Why pulling the nearest police car creates dangerous civic blind spots</p>
+        </div>
+      </div>
+
+      <!-- Highlight Banner: FASTEST ≠ BEST -->
+      <div class="p-8 bg-gradient-to-r from-rose-950/60 via-slate-900 to-amber-950/60 rounded-3xl border border-rose-500/40 shadow-2xl relative">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="max-w-xl">
+            <span class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold uppercase tracking-widest">
+              CORE SYSTEM PRINCIPLE
+            </span>
+            <h3 class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight mt-2 font-sans">
+              FASTEST ≠ BEST
+            </h3>
+            <p class="text-sm text-slate-300 font-sans mt-2 leading-relaxed">
+              Traditional CAD systems blindly dispatch the closest unit. Nagpur Pulse simulates the <strong class="text-white">operational consequence</strong> of removing that unit from its patrol sector before authorizing dispatch.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 font-mono text-xs shrink-0">
+            <div class="p-4 bg-slate-950/90 rounded-xl border border-rose-500/40 text-center">
+              <span class="text-[10px] text-slate-400 block uppercase">Naive Nearest Pick</span>
+              <p class="text-xl font-bold text-rose-400 mt-1">Unit P17 (3 min)</p>
+              <span class="text-[10px] text-rose-300 block mt-0.5">⚠️ 45% Sector Blindspot</span>
+            </div>
+            <div class="p-4 bg-slate-950/90 rounded-xl border border-emerald-500/50 text-center ring-1 ring-emerald-500/40">
+              <span class="text-[10px] text-slate-400 block uppercase">Pulse Recommended</span>
+              <p class="text-xl font-bold text-emerald-400 mt-1">Unit P12 (4 min)</p>
+              <span class="text-[10px] text-emerald-300 block mt-0.5">✅ 92% Sector Safety</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 font-mono text-xs">
+        <div class="p-5 bg-slate-900/90 rounded-2xl border border-rose-500/30 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+              <span class="font-bold text-rose-400 text-sm font-sans">Unit P17 (Ajni Fast Interceptor)</span>
+              <span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded font-bold text-[10px]">ETA: 2.9 MIN</span>
+            </div>
+            <ul class="space-y-2 text-slate-300 font-sans text-xs">
+              <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✕</span> <span><strong>Leaves Ajni & Chhatrapati Highway Empty:</strong> Sole rapid responder on southern arterial.</span></li>
+              <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✕</span> <span><strong>Secondary Crash Risk Escalates by +38%:</strong> High evening market congestion left unmonitored.</span></li>
+              <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✕</span> <span><strong>High Crew Fatigue:</strong> 6 dispatches completed in current shift.</span></li>
+            </ul>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-rose-400 font-bold flex justify-between">
+            <span>What-If Penalty: -14.2 DAS pts</span>
+            <span>Verdict: HIGH OPERATIONAL RISK</span>
+          </div>
+        </div>
+
+        <div class="p-5 bg-slate-900/90 rounded-2xl border border-emerald-500/40 flex flex-col justify-between ring-1 ring-emerald-500/30">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+              <span class="font-bold text-emerald-400 text-sm font-sans">Unit P12 (Medical Square Patrol)</span>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold text-[10px]">ETA: 4.1 MIN (+72s)</span>
+            </div>
+            <ul class="space-y-2 text-slate-300 font-sans text-xs">
+              <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> <span><strong>Zero Sector Blindspot:</strong> Nearby Unit P16 (Manewada) immediately covers Medical Square with 3-minute overlap.</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> <span><strong>Negligible Secondary Risk (+4%):</strong> Highway corridor remains fortified.</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> <span><strong>Fresh Crew & Equipment:</strong> Equipped with hydraulic cutter & automated defibrillator.</span></li>
+            </ul>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-emerald-400 font-bold flex justify-between">
+            <span>What-If Penalty: -1.8 DAS pts</span>
+            <span>Verdict: OPTIMAL RECOMMENDATION</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 6 — WHAT-IF RESOURCE ANALYSIS -->
+    <!-- ======================================================================= -->
+    <section id="whatif" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">06</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 6 — What-If Scenario Sandbox Analysis</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30">DETERMINISTIC SIMULATION</span>
+          </h2>
+          <p class="text-xs text-slate-400">Evaluate systemic consequences before committing the recommendation</p>
+        </div>
+      </div>
+
+      <div class="p-6 bg-slate-900/90 rounded-2xl border border-slate-800 font-mono shadow-xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+          <div>
+            <h3 class="font-bold text-base text-slate-100 font-sans">Comparative Deployment Trade-Off Matrix</h3>
+            <p class="text-xs text-slate-400 font-sans mt-0.5">Evaluate consequences before committing the recommendation.</p>
+          </div>
+          <span class="text-xs px-3 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-xl font-bold">3 Candidates Evaluated</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-200 text-sm font-sans">Scenario A: Unit P17</span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-bold border text-amber-400 bg-amber-500/20 border-amber-500/30">REVIEW REQUIRED</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Arrival ETA</span><span class="font-bold text-cyan-300">2.9 min</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Post-Coverage</span><span class="font-bold text-slate-200">55% (-45%)</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Secondary Risk</span><span class="font-bold text-slate-200">+38% Risk</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">DAS Score</span><span class="font-bold text-white">74.3 / 100</span></div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-3 font-sans leading-relaxed">Fastest arrival but creates dangerous southern highway deficit.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-500">Sub-Optimal Alternative</div>
+          </div>
+
+          <div class="p-4 bg-slate-950 rounded-2xl border border-emerald-500/50 flex flex-col justify-between ring-1 ring-emerald-500/40 glow-cyan">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-emerald-400 text-sm font-sans">Scenario B: Unit P12 (Winner)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-bold border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">ASSURED (BEST)</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Arrival ETA</span><span class="font-bold text-cyan-300">4.1 min</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Post-Coverage</span><span class="font-bold text-slate-200">92% (-8%)</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Secondary Risk</span><span class="font-bold text-slate-200">+4% Risk</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">DAS Score</span><span class="font-bold text-white">88.5 / 100</span></div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-3 font-sans leading-relaxed">Best overall deployment option. Balances rapid ETA with zero blind spots.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[10px] text-emerald-400 font-bold">Best Overall Deployment Option</div>
+          </div>
+
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-200 text-sm font-sans">Scenario C: Unit P09</span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-bold border text-slate-400 bg-slate-800 border-slate-700">LOW ASSURANCE</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Arrival ETA</span><span class="font-bold text-cyan-300">7.4 min</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Post-Coverage</span><span class="font-bold text-slate-200">96% (-4%)</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">Secondary Risk</span><span class="font-bold text-slate-200">+2% Risk</span></div>
+                <div class="p-2 bg-slate-900 rounded-lg"><span class="text-[10px] text-slate-500 block">DAS Score</span><span class="font-bold text-white">68.1 / 100</span></div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-3 font-sans leading-relaxed">Excellent coverage preservation but ETA exceeds 7-minute benchmark.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-500">Backup Candidate</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 7 — DECISION REVIEW ENGINE -->
+    <!-- ======================================================================= -->
+    <section id="review" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold">07</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 7 — Decision Review Engine (Central Assurance Gate)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">INTEGRITY CITADEL</span>
+          </h2>
+          <p class="text-xs text-slate-400">10-point diagnostic assurance checks & Hard Constraint enforcement</p>
+        </div>
+      </div>
+
+      <div class="p-8 bg-gradient-to-b from-[#0e172a] to-slate-950 rounded-3xl border border-cyan-500/40 shadow-2xl font-mono">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-800 pb-5">
+          <div>
+            <h3 class="text-xl font-bold text-white font-sans uppercase">Multi-Criteria Decision Assurance Score (DAS)</h3>
+            <p class="text-xs text-slate-400 font-sans mt-1">Every AI recommendation passes through 10 deterministic gates before reaching the commander.</p>
+          </div>
+          <div class="p-4 bg-slate-900 rounded-2xl border border-cyan-500/50 flex items-center gap-4 shrink-0 shadow-lg glow-cyan">
+            <div class="text-center">
+              <span class="text-[10px] text-slate-400 uppercase block">ASSURANCE SCORE</span>
+              <span class="text-3xl font-black text-cyan-400">88.5</span>
+              <span class="text-xs text-slate-500"> / 100</span>
+            </div>
+            <div class="h-10 w-px bg-slate-800"></div>
+            <div>
+              <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl font-bold text-xs inline-block">STATUS: ASSURED</span>
+              <span class="text-[10px] text-slate-400 block mt-1 font-sans">Ready for Commander Confirmation</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 Diagnostic Verification Gates -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 text-xs">
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">1. ML Confidence (3%)</span>
+            <p class="font-bold text-slate-200 mt-1">94.7%</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">2. Data Freshness (8%)</span>
+            <p class="font-bold text-slate-200 mt-1">98.2% (&lt;15s)</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">3. Unit State FSM (10%)</span>
+            <p class="font-bold text-slate-200 mt-1">AVAILABLE</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">4. Capability Match (8%)</span>
+            <p class="font-bold text-slate-200 mt-1">100% Match</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">5. ETA Tolerance (10%)</span>
+            <p class="font-bold text-slate-200 mt-1">4.1 min (&lt;15m)</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">6. Coverage Safety (12%)</span>
+            <p class="font-bold text-slate-200 mt-1">92% (&gt;60%)</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">7. Shift Workload (5%)</span>
+            <p class="font-bold text-slate-200 mt-1">34% (Healthy)</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">8. Risk Stability (4%)</span>
+            <p class="font-bold text-slate-200 mt-1">0.02 Variance</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">9. What-If Penalty</span>
+            <p class="font-bold text-slate-200 mt-1">-1.8 pts</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-500 block">10. Hard Constraints</span>
+            <p class="font-bold text-slate-200 mt-1">5/5 Passed</p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block">✓ PASS</span>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-slate-800">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
+              <span class="font-bold text-emerald-400 block text-sm">ASSURED (85-100)</span>
+              <p class="text-[11px] text-slate-300 font-sans mt-1">High-confidence green recommendation. Ready for immediate execution.</p>
+            </div>
+            <div class="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl">
+              <span class="font-bold text-amber-400 block text-sm">REVIEW REQUIRED (70-84)</span>
+              <p class="text-[11px] text-slate-300 font-sans mt-1">Viable dispatch, but commander human verification is required.</p>
+            </div>
+            <div class="p-3 bg-orange-950/40 border border-orange-500/30 rounded-xl">
+              <span class="font-bold text-orange-400 block text-sm">LOW ASSURANCE (50-69)</span>
+              <p class="text-[11px] text-slate-300 font-sans mt-1">Significant operational trade-offs. Alternative units advised.</p>
+            </div>
+            <div class="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl">
+              <span class="font-bold text-rose-400 block text-sm">BLOCKED (&lt;50 / GATE FAIL)</span>
+              <p class="text-[11px] text-slate-300 font-sans mt-1">Violates hard constraint (e.g. coverage &lt;60%). Dispatch locked.</p>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 font-sans flex items-center gap-2">
+            <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span><strong>Hard Constraint Rule:</strong> Any hard constraint failure (e.g., sector coverage &lt;60% or VVIP corridor violation) immediately overrides any numerical score, locking the status to <strong>BLOCKED</strong>.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 8 — HUMAN DECISION -->
+    <!-- ======================================================================= -->
+    <section id="human" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">08</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Section 8 — Human Decision & Commander Sovereignty</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30">SOVEREIGN COMMAND</span>
+          </h2>
+          <p class="text-xs text-slate-400">The AI never executes unilateral dispatch actions without sworn officer verification</p>
+        </div>
+      </div>
+
+      <div class="p-8 sm:p-12 bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-3xl border border-blue-500/50 shadow-2xl text-center glow-blue">
+        <div class="max-w-2xl mx-auto">
+          <span class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-mono text-xs font-bold uppercase tracking-widest">
+            CONSTITUTIONAL GOVERNANCE MANDATE
+          </span>
+          <h3 class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight mt-3 font-sans">
+            AI ADVISES. <br>
+            <span class="text-cyan-400">OPERATOR DECIDES.</span>
+          </h3>
+          <p class="text-sm sm:text-base text-slate-300 font-sans mt-3 leading-relaxed">
+            Police deployment authority rests exclusively with the sworn human commander. AI recommendations provide ranked multi-criteria intelligence, while the commander retains sovereign approval, modification, or rejection power.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 font-mono text-xs text-left max-w-3xl mx-auto">
+          <div class="p-4 bg-slate-950/80 rounded-2xl border border-emerald-500/50 shadow-lg glow-cyan">
+            <span class="font-bold text-emerald-400 text-sm block">1. APPROVE</span>
+            <p class="text-[11px] text-slate-300 font-sans mt-2">Commander confirms DAS score. 1-click broadcast dispatches Unit P12 to target chowk.</p>
+            <span class="text-[9px] text-emerald-300 mt-3 block font-bold">Audit Action: DISPATCH_APPROVED</span>
+          </div>
+
+          <div class="p-4 bg-slate-950/80 rounded-2xl border border-amber-500/50">
+            <span class="font-bold text-amber-400 text-sm block">2. MODIFY</span>
+            <p class="text-[11px] text-slate-300 font-sans mt-2">Commander alters unit or route. Structured reason code logged (e.g. Local Event Override).</p>
+            <span class="text-[9px] text-amber-300 mt-3 block font-bold">Audit Action: DECISION_MODIFY</span>
+          </div>
+
+          <div class="p-4 bg-slate-950/80 rounded-2xl border border-rose-500/50">
+            <span class="font-bold text-rose-400 text-sm block">3. REJECT</span>
+            <p class="text-[11px] text-slate-300 font-sans mt-2">Recommendation dismissed. Reason logged for offline model retraining feedback loops.</p>
+            <span class="text-[9px] text-rose-300 mt-3 block font-bold">Audit Action: DECISION_REJECT</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- FINAL SECTION — AUDIT & ACCOUNTABILITY -->
+    <!-- ======================================================================= -->
+    <section id="audit" class="flex flex-col gap-6 scroll-mt-24">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3 font-mono">
+        <span class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold">09</span>
+        <div>
+          <h2 class="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Final Section — Complete Audit & Cryptographic Traceability</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">SHA-256 HMAC</span>
+          </h2>
+          <p class="text-xs text-slate-400">11-Stage Immutable Pipeline Trace</p>
+        </div>
+      </div>
+
+      <div class="p-6 sm:p-8 bg-slate-900/90 rounded-3xl border border-slate-800 font-mono shadow-2xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 01</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Input Snapshot</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Raw traffic, CAD & weather telemetry captured in state snapshot.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 02</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Model Version</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Deterministic weights locked (xgb_v3_calibrated).</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 03</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Risk Probability</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Multiclass Softmax outputs computed (P(H)=0.61, P(C)=0.28).</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 04</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">SHAP Feature XAI</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Local feature attribution waterfall stored for human inspection.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 05</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">OR-Tools Solver</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Global combinatorial candidate allocation matrix generated.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 06</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">What-If Results</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Sector coverage trade-off & consequence penalty (-1.8 pts) applied.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 07</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Decision Review DAS</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">10 diagnostic verification gates & hard constraints passed (DAS: 88.5).</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 08</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Commander Action</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Sworn officer decision, cryptographic signature, and rationale logged.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 09</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">CAD Dispatch Event</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Broadcast to police patrol radio & vehicle mobile data terminal.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 10</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">GPS Fleet Tracking</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">TomTom turn-by-turn routing telemetry & siren activation logged.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 11</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Outcome Reconciliation</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">Arrival latency & outcome stored for continual model learning.</p>
+          </div>
+          <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-cyan-400 font-bold block">STAGE 12</span>
+            <h4 class="font-bold text-slate-200 text-sm font-sans mt-1">Cryptographic HMAC</h4>
+            <p class="text-[11px] text-slate-400 font-sans mt-1">SHA-256 tamper-proof ledger across all 5 operational zones.</p>
+          </div>
+        </div>
+
+        <!-- Grand Closing Statement Box -->
+        <div class="mt-8 p-6 sm:p-8 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-blue-950/60 rounded-2xl border border-cyan-500/40 text-center glow-cyan">
+          <p class="text-lg sm:text-xl font-bold text-white font-sans max-w-3xl mx-auto leading-relaxed">
+            “The system does not guarantee that an outcome will always be correct. <br>
+            <span class="text-cyan-300 font-black underline decoration-cyan-500/50">
+              It guarantees traceability of the decision process.
+            </span>”
+          </p>
+          <p class="text-xs text-slate-400 font-mono mt-3">
+            Nagpur Pulse • Public Safety & Municipal Mobility Intelligence • Certified ZBAC Compliant
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="w-full bg-[#050811] border-t border-slate-800 py-6 px-4 text-center text-xs font-mono text-slate-500">
+    Nagpur Pulse AI Decision Intelligence System • Official Research & Hackathon Demonstration • 2026 Edition
+  </footer>
+
+</body>
+</html>

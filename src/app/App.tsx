@@ -13,6 +13,7 @@ import { WeatherImpactHeatmapView } from '../components/weather/WeatherImpactHea
 import { UserManagementView } from '../components/admin/UserManagementView';
 import { AuditLogsView } from '../components/admin/AuditLogsView';
 import { ZoneAdminHubView } from '../components/admin/ZoneAdminHubView';
+import { PulseDecisionIntelligenceView } from '../components/presentation/PulseDecisionIntelligenceView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -31,6 +32,9 @@ function AppContent() {
         {currentTab === 'traffic' && <TrafficMonitorView />}
         {currentTab === 'incidents' && <IncidentMonitorView />}
         {currentTab === 'risk' && <RiskIntelligenceView />}
+        {currentTab === 'decision-intelligence' && (
+          <PulseDecisionIntelligenceView onReturnToDashboard={() => setCurrentTab('dashboard')} />
+        )}
         {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
         {currentTab === 'zone-admin' && <ZoneAdminHubView />}
