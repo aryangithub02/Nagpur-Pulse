@@ -10,6 +10,8 @@ from app.services.spatial_utils import (
     generate_route_waypoints,
 )
 from app.exceptions import LocationNotFoundException, RoutingUnavailableException
+from app.services.police_unit_service import police_unit_service
+from app.services.tomtom_service import tomtom_service
 
 logger = logging.getLogger("routing_service")
 
