@@ -1,4 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const getBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('vercel.app') ||
+      window.location.hostname.includes('onrender.com') ||
+      window.location.protocol === 'https:')
+  ) {
+    return 'https://nagpur-pulse-backend.onrender.com';
+  }
+  return envUrl || 'http://localhost:8000';
+};
+
+const API_BASE_URL = getBaseUrl();
 
 export interface ApiResponse<T> {
   data: T | null;

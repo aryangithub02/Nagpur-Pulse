@@ -16,7 +16,8 @@ import { ZoneAdminHubView } from '../components/admin/ZoneAdminHubView';
 
 function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  const { isLoginModalOpen, setIsLoginModalOpen } = useAuth();
+  const { isLoginModalOpen, setIsLoginModalOpen, user } = useAuth();
+  const isSystemAdmin = user?.role === 'SYSTEM_ADMIN' || user?.zone === 'ALL';
   const { apiSyncState } = useNagpurPulseStore();
 
   return (
@@ -33,7 +34,7 @@ function AppContent() {
         {currentTab === 'risk' && <RiskIntelligenceView />}
         {currentTab === 'weather' && <WeatherImpactHeatmapView />}
         {currentTab === 'coverage' && <PoliceCoverageView />}
-        {currentTab === 'zone-admin' && <ZoneAdminHubView />}
+        {currentTab === 'zone-admin' && (isSystemAdmin ? <ZoneAdminHubView /> : <OverviewDashboard onNavigateTab={(tab) => setCurrentTab(tab)} />)}
         {currentTab === 'users' && <UserManagementView />}
         {currentTab === 'audit' && <AuditLogsView />}
       </main>

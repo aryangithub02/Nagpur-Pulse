@@ -31,7 +31,7 @@ export const QRDeviceAuthenticator: React.FC<{
   onSuccess: (userData: any, token: string) => void;
   onClose?: () => void;
 }> = ({ onSuccess, onClose }) => {
-  const { setToken, setUser, setActiveZone } = useAuth() as any;
+  const { loginWithUser, setActiveZone } = useAuth();
 
   const [session, setSession] = useState<QRSessionData | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(120);
@@ -80,14 +80,12 @@ export const QRDeviceAuthenticator: React.FC<{
       const statusRes = await checkQRSessionStatus(session.session_id);
       if (statusRes.status === 'APPROVED' && statusRes.access_token) {
         setSessionStatus('APPROVED');
-        if (setToken) setToken(statusRes.access_token);
-        if (setUser && statusRes.user) {
-          setUser(statusRes.user);
-          if (statusRes.user.zone) setActiveZone(statusRes.user.zone);
+        if (loginWithUser && statusRes.user) {
+          loginWithUser(statusRes.user, statusRes.access_token);
         }
         setTimeout(() => {
           onSuccess(statusRes.user, statusRes.access_token || '');
-        }, 1200);
+        }, 1000);
       } else if (statusRes.status === 'REJECTED') {
         setSessionStatus('REJECTED');
         setRejectionMessage(statusRes.rejection_reason || 'Device not allowed for this admin identity.');
@@ -146,14 +144,12 @@ export const QRDeviceAuthenticator: React.FC<{
 
       if (result.decision === 'YES' && result.success) {
         setSessionStatus('APPROVED');
-        if (setToken) setToken(result.access_token || `token_${simSelectedAdmin}`);
-        if (setUser && result.user) {
-          setUser(result.user);
-          if (result.user.zone) setActiveZone(result.user.zone);
+        if (loginWithUser && result.user) {
+          loginWithUser(result.user, result.access_token || `token_${simSelectedAdmin}`);
         }
         setTimeout(() => {
           onSuccess(result.user, result.access_token || '');
-        }, 1200);
+        }, 1000);
       } else {
         setSessionStatus('REJECTED');
         setRejectionMessage(result.message || 'Device authorization rejected by server.');

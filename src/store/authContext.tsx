@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (open: boolean) => void;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string; must_change_password?: boolean }>;
+  loginWithUser: (user: User, token: string) => void;
   logout: () => void;
   changePassword: (currentPass: string, newPass: string, confirmPass: string) => Promise<{ success: boolean; message?: string }>;
   setActiveZone: (zone: ZoneCode) => void;
@@ -272,6 +273,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // LOGIN WITH USER OBJECT (Used by QR Asymmetric Authenticator)
+  const loginWithUser = (userData: User, userToken: string) => {
+    setUser(userData);
+    setToken(userToken);
+    localStorage.setItem('nagpur_pulse_jwt', userToken);
+    localStorage.setItem('nagpur_pulse_user', JSON.stringify(userData));
+    setIsLoginModalOpen(false);
+    if (userData.role === 'ZONE_ADMIN' && userData.zone) {
+      setActiveZoneState(userData.zone);
+    } else {
+      setActiveZoneState('ALL');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -283,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoginModalOpen,
         setIsLoginModalOpen,
         login,
+        loginWithUser,
         logout,
         changePassword,
         setActiveZone,
