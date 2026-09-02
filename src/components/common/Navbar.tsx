@@ -82,119 +82,121 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           </div>
         </div>
 
-        {/* Center Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono shrink min-w-0">
-          <button
-            onClick={() => setCurrentTab('dashboard')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
-              currentTab === 'dashboard' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setCurrentTab('police')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
-              currentTab === 'police' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Police
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
-              {availableUnits}
-            </span>
-          </button>
-          <button
-            onClick={() => setCurrentTab('traffic')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
-              currentTab === 'traffic' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Traffic
-          </button>
-          <button
-            onClick={() => setCurrentTab('incidents')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
-              currentTab === 'incidents' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Incidents
-            {criticalIncidents > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold animate-pulse">
-                {criticalIncidents}
+        {/* Center Navigation Tabs (Safely bounded with horizontal scroll) */}
+        <div className="hidden lg:flex flex-1 min-w-0 justify-center px-2">
+          <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-mono overflow-x-auto overflow-y-hidden max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              onClick={() => setCurrentTab('dashboard')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
+                currentTab === 'dashboard' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setCurrentTab('police')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
+                currentTab === 'police' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Police
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+                {availableUnits}
               </span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('traffic')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
+                currentTab === 'traffic' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Traffic
+            </button>
+            <button
+              onClick={() => setCurrentTab('incidents')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1.5 whitespace-nowrap ${
+                currentTab === 'incidents' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Incidents
+              {criticalIncidents > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold animate-pulse">
+                  {criticalIncidents}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentTab('risk')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
+                currentTab === 'risk' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Risk AI
+            </button>
+            <button
+              onClick={() => setCurrentTab('weather')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
+                currentTab === 'weather' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Weather
+            </button>
+            <button
+              onClick={() => setCurrentTab('coverage')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
+                currentTab === 'coverage' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Coverage
+            </button>
+
+            {/* Admin Navigation Tabs */}
+            <button
+              onClick={() => setCurrentTab('zone-admin')}
+              className={`px-2.5 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 whitespace-nowrap ${
+                currentTab === 'zone-admin'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
+                  : 'text-amber-400 hover:text-amber-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Zone Admin</span>
+            </button>
+
+            {user?.role === 'SYSTEM_ADMIN' && (
+              <button
+                onClick={() => setCurrentTab('users')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
+                  currentTab === 'users' ? 'bg-indigo-600 text-white shadow' : 'text-indigo-400 hover:text-indigo-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Users</span>
+              </button>
             )}
-          </button>
-          <button
-            onClick={() => setCurrentTab('risk')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
-              currentTab === 'risk' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Risk AI
-          </button>
-          <button
-            onClick={() => setCurrentTab('weather')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
-              currentTab === 'weather' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Weather
-          </button>
-          <button
-            onClick={() => setCurrentTab('coverage')}
-            className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold whitespace-nowrap ${
-              currentTab === 'coverage' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
-          >
-            Coverage
-          </button>
 
-          {/* Admin Navigation Tabs */}
-          <button
-            onClick={() => setCurrentTab('zone-admin')}
-            className={`px-2.5 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5 whitespace-nowrap ${
-              currentTab === 'zone-admin'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
-                : 'text-amber-400 hover:text-amber-200 hover:bg-slate-800/60'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-            <span>Zone Admin</span>
-          </button>
+            {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ZONE_ADMIN') && (
+              <button
+                onClick={() => setCurrentTab('audit')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
+                  currentTab === 'audit' ? 'bg-indigo-600 text-white shadow' : 'text-cyan-400 hover:text-cyan-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Audit</span>
+              </button>
+            )}
+          </nav>
+        </div>
 
-          {user?.role === 'SYSTEM_ADMIN' && (
-            <button
-              onClick={() => setCurrentTab('users')}
-              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
-                currentTab === 'users' ? 'bg-indigo-600 text-white shadow' : 'text-indigo-400 hover:text-indigo-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Users</span>
-            </button>
-          )}
-
-          {(user?.role === 'SYSTEM_ADMIN' || user?.role === 'ZONE_ADMIN') && (
-            <button
-              onClick={() => setCurrentTab('audit')}
-              className={`px-2.5 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1 whitespace-nowrap ${
-                currentTab === 'audit' ? 'bg-indigo-600 text-white shadow' : 'text-cyan-400 hover:text-cyan-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Audit</span>
-            </button>
-          )}
-        </nav>
-
-        {/* Right Controls & User Profile */}
-        <div className="flex items-center gap-2 font-mono">
+        {/* Right Controls & User Profile (Strictly shrink-0 on top) */}
+        <div className="flex items-center gap-2 font-mono shrink-0 ml-auto z-20 bg-slate-950/95 pl-1">
           {/* Zone Switcher (For System Admin) */}
           {user?.role === 'SYSTEM_ADMIN' ? (
             <select
               value={activeZone}
               onChange={(e) => setActiveZone(e.target.value as ZoneCode)}
-              className="bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:ring-blue-500"
+              className="bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:ring-blue-500 whitespace-nowrap"
             >
               <option value="ALL">Zone: ALL CITIES</option>
               <option value="CENTRAL">Zone: CENTRAL</option>
@@ -204,7 +206,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
               <option value="SOUTH">Zone: SOUTH</option>
             </select>
           ) : (
-            <div className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-slate-300">
+            <div className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-slate-300 whitespace-nowrap">
               Zone: <span className="text-amber-400">{user?.zone || 'ALL'}</span>
             </div>
           )}
@@ -212,7 +214,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           {/* Emergency 112 Trigger */}
           <button
             onClick={triggerEmergencyIncident}
-            className="px-2.5 py-1.5 bg-rose-600/90 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/20 border border-rose-400/40 flex items-center gap-1 transition active:scale-95 animate-pulse"
+            className="px-2.5 py-1.5 bg-rose-600/90 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/20 border border-rose-400/40 flex items-center gap-1 transition active:scale-95 animate-pulse shrink-0 whitespace-nowrap"
             title="Simulate 112 emergency call"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -221,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
 
           {/* User Session Profile Button */}
           {user ? (
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1 shrink-0">
               <button
                 onClick={() => setIsLoginModalOpen(true)}
                 className="flex items-center gap-2 px-2 py-0.5 hover:bg-slate-800 rounded-lg transition"
@@ -246,7 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           ) : (
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-1.5 shrink-0 whitespace-nowrap"
             >
               <UserIcon className="w-3.5 h-3.5" />
               <span>Login</span>
