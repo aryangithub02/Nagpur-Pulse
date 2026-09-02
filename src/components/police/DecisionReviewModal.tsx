@@ -81,9 +81,13 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
     })
       .then((evalData) => {
         if (isMounted) {
-          setRecord(evalData);
-          if (evalData.alternatives && evalData.alternatives.length > 0) {
-            setSelectedAltUnitId(evalData.alternatives[0].unit_id);
+          if (evalData) {
+            setRecord(evalData);
+            if (evalData.alternatives && evalData.alternatives.length > 0) {
+              setSelectedAltUnitId(evalData.alternatives[0].unit_id);
+            }
+          } else {
+            setError('Failed to evaluate decision assurance benchmarks: No data returned.');
           }
           setLoading(false);
         }
@@ -362,7 +366,7 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                    {record.alternatives.map((alt) => (
+                    {(record.alternatives || []).map((alt) => (
                       <tr key={alt.unit_id} className="hover:bg-slate-900/40 transition">
                         <td className="p-2.5 font-bold text-white flex items-center gap-1.5">
                           <Radio className="w-3.5 h-3.5 text-blue-400" />
@@ -393,7 +397,7 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
                   KNOWN &amp; VERIFIED CONDITIONS
                 </span>
                 <div className="space-y-1.5">
-                  {record.known_conditions.map((k, idx) => (
+                  {(record.known_conditions || []).map((k, idx) => (
                     <div key={idx} className="p-2 rounded bg-slate-900/80 border border-slate-800/80 text-[11px]">
                       <strong className="text-white">{k.label}:</strong>{' '}
                       <span className="text-slate-400">{k.detail}</span>
@@ -409,7 +413,7 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
                   UNKNOWN &amp; UNVERIFIED FIELD UNCERTAINTIES
                 </span>
                 <div className="space-y-1.5">
-                  {record.unknown_conditions.map((u, idx) => (
+                  {(record.unknown_conditions || []).map((u, idx) => (
                     <div key={idx} className="p-2 rounded bg-slate-900/80 border border-slate-800/80 text-[11px]">
                       <strong className="text-amber-300">{u.label}:</strong>{' '}
                       <span className="text-slate-400">{u.detail}</span>
@@ -455,7 +459,7 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
                     onChange={(e) => setSelectedAltUnitId(e.target.value)}
                     className="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white font-mono"
                   >
-                    {record.alternatives.map((alt) => (
+                    {(record.alternatives || []).map((alt) => (
                       <option key={alt.unit_id} value={alt.unit_id}>
                         {alt.callsign} — ETA: {alt.eta_minutes} min (DAS: {alt.decision_assurance_score})
                       </option>
@@ -509,7 +513,7 @@ export const DecisionReviewModal: React.FC<DecisionReviewModalProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
                   <Lock className="w-3.5 h-3.5" />
-                  <span>SHA-256 Block Hash: {record.audit_chain.sha256_hash.substring(0, 12)}...</span>
+                  <span>SHA-256 Block Hash: {record.audit_chain?.sha256_hash ? record.audit_chain.sha256_hash.substring(0, 12) : '000000000000'}...</span>
                 </div>
 
                 <div className="flex gap-2">
