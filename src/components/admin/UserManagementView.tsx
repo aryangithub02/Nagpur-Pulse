@@ -3,6 +3,8 @@ import { Users, UserPlus, Shield, Lock, RefreshCw, CheckCircle2, XCircle, Search
 import { useAuth } from '../../store/authContext';
 import { User, UserRole, ZoneCode } from '../../types/auth';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 export const UserManagementView: React.FC = () => {
   const { token, user: currentUser } = useAuth();
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -21,7 +23,7 @@ export const UserManagementView: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const resp = await fetch('http://localhost:8000/api/v1/admin/users', {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (resp.ok) {
@@ -44,7 +46,7 @@ export const UserManagementView: React.FC = () => {
     setFormError(null);
 
     try {
-      const resp = await fetch('http://localhost:8000/api/v1/admin/users', {
+      const resp = await fetch(`${API_BASE_URL}/api/v1/admin/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +75,7 @@ export const UserManagementView: React.FC = () => {
 
   const handleToggleActive = async (targetUser: User) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/admin/users/${targetUser.id}`, {
+      await fetch(`${API_BASE_URL}/api/v1/admin/users/${targetUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

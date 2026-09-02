@@ -3,6 +3,8 @@ import { ShieldCheck, RefreshCw, Filter, Clock, CheckCircle2, XCircle } from 'lu
 import { useAuth } from '../../store/authContext';
 import { AuditLogItem } from '../../types/auth';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 export const AuditLogsView: React.FC = () => {
   const { token, activeZone, user } = useAuth();
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
@@ -12,7 +14,7 @@ export const AuditLogsView: React.FC = () => {
   const fetchAuditLogs = async () => {
     setLoading(true);
     try {
-      let url = `http://localhost:8000/api/v1/admin/audit-logs?limit=100`;
+      let url = `${API_BASE_URL}/api/v1/admin/audit-logs?limit=100`;
       if (activeZone && activeZone !== 'ALL') {
         url += `&zone_code=${activeZone}`;
       }

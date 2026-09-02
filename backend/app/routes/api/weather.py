@@ -96,21 +96,25 @@ def get_weather_heatmap(
             observed_at = target_item.get("forecast_for", datetime.utcnow().isoformat())
             is_forecast = True
         else:
-            impact_score = curr["traffic_impact"]["score"]
-            impact_level = curr["traffic_impact"]["level"]
-            weather_cond = curr["weather"]["weather_condition"]
-            precip_mm = curr["weather"]["precipitation_mm"]
-            visibility_km = curr["weather"]["visibility_km"]
-            wind_speed_kmh = curr["weather"]["wind_speed_kmh"]
+            w_data = curr.get("weather", {})
+            impact_data = curr.get("traffic_impact", {})
+            impact_score = impact_data.get("score", 0.0)
+            impact_level = impact_data.get("level", "LOW")
+            weather_cond = w_data.get("weather_condition", "Clear")
+            precip_mm = w_data.get("precipitation_mm", 0.0)
+            visibility_km = w_data.get("visibility_km", 10.0)
+            wind_speed_kmh = w_data.get("wind_speed_kmh", 12.0)
             observed_at = curr.get("observed_at")
             is_forecast = False
     else:
-        impact_score = curr["traffic_impact"]["score"]
-        impact_level = curr["traffic_impact"]["level"]
-        weather_cond = curr["weather"]["weather_condition"]
-        precip_mm = curr["weather"]["precipitation_mm"]
-        visibility_km = curr["weather"]["visibility_km"]
-        wind_speed_kmh = curr["weather"]["wind_speed_kmh"]
+        w_data = curr.get("weather", {})
+        impact_data = curr.get("traffic_impact", {})
+        impact_score = impact_data.get("score", 0.0)
+        impact_level = impact_data.get("level", "LOW")
+        weather_cond = w_data.get("weather_condition", "Clear")
+        precip_mm = w_data.get("precipitation_mm", 0.0)
+        visibility_km = w_data.get("visibility_km", 10.0)
+        wind_speed_kmh = w_data.get("wind_speed_kmh", 12.0)
         observed_at = curr.get("observed_at")
         is_forecast = False
 
@@ -120,58 +124,64 @@ def get_weather_heatmap(
         logger.warning(f"Could not query junctions from DB, using fallback list: {db_ex}")
         junctions = []
 
+    fallback_data = [
+        (1, "LIC Chowk", 21.1556187, 79.0817574),
+        (2, "Lokmat Chowk", 21.1354806, 79.0780286),
+        (3, "Gaddi Godam Chowk", 21.1616305, 79.083725),
+        (4, "Variya Square", 21.1668, 79.0848),
+        (5, "Automotive Chowk", 21.1912, 79.0886),
+        (6, "Indora Chowk", 21.1764, 79.0864),
+        (7, "Kamal Chowk", 21.1678, 79.0945),
+        (8, "Panchpaoli Chowk", 21.1623, 79.1012),
+        (9, "Agrasen Chowk", 21.1534, 79.1023),
+        (10, "Dosar Vaishya Chowk", 21.1512, 79.0956),
+        (11, "Subhash Chowk", 21.1467, 79.1045),
+        (12, "Chhatrapati Nagar Square", 21.112467, 79.064213),
+        (13, "Pratap Nagar Square", 21.1189, 79.0567),
+        (14, "Mate Chowk", 21.1245, 79.0589),
+        (15, "Deonagar Square", 21.1167, 79.0712),
+        (16, "Khamla Square", 21.1134, 79.0689),
+        (17, "Ajni Chowk", 21.1256, 79.0834),
+        (18, "Medical Square", 21.1345, 79.0945),
+        (19, "Baidyanath Chowk", 21.1389, 79.0912),
+        (20, "Rambhag Road Intersection", 21.1412, 79.0889),
+        (21, "Manewada Square", 21.1045, 79.0923),
+        (22, "Omkar Nagar Square", 21.1012, 79.0856),
+        (23, "Shatabdi Square", 21.0967, 79.0812),
+        (24, "Besada Chowk", 21.0923, 79.0945),
+        (25, "Dighori Naka Square", 21.1123, 79.1345),
+        (26, "Kharbi Chowk", 21.1267, 79.1389),
+        (27, "Sakkardara Chowk", 21.1289, 79.1123),
+        (28, "Reshimbagh Square", 21.1323, 79.1056),
+        (29, "Krida Chowk", 21.1356, 79.1012),
+        (30, "Ashok Chowk", 21.1412, 79.1145),
+        (31, "Bhande Plot Square", 21.1378, 79.1234),
+        (32, "Garoba Maidan Chowk", 21.1456, 79.1256),
+        (33, "Telephone Exchange Square", 21.1489, 79.1189),
+        (34, "Central Avenue (CA) Road Chowk", 21.1467, 79.1089),
+        (35, "Law College Square", 21.1478, 79.0567),
+        (36, "Shankar Nagar Square", 21.1389, 79.0623),
+        (37, "Bhole Petrol Pump Chowk", 21.1434, 79.0689),
+        (38, "VIP Road Intersection", 21.1512, 79.0645),
+        (39, "Japanese Garden Square", 21.1634, 79.0678),
+        (40, "TVS Maruti Seva Chowk", 21.1589, 79.0745),
+        (41, "RBI Chowk", 21.1512, 79.0845),
+        (42, "Samvidhan Square (RBI Square)", 21.1498, 79.0834),
+        (43, "Zero Mile Square", 21.1478, 79.0845),
+        (44, "Manish Nagar Flyover Intersection", 21.0989, 79.0689),
+    ]
+
+    from app.models.junction import Junction as JunctionModel
     if not junctions:
-        from app.models.junction import Junction as JunctionModel
-        fallback_data = [
-            (1, "LIC Chowk", 21.1556187, 79.0817574),
-            (2, "Lokmat Chowk", 21.1354806, 79.0780286),
-            (3, "Gaddi Godam Chowk", 21.1616305, 79.083725),
-            (4, "Variya Square", 21.1668, 79.0848),
-            (5, "Automotive Chowk", 21.1912, 79.0886),
-            (6, "Indora Chowk", 21.1764, 79.0864),
-            (7, "Kamal Chowk", 21.1678, 79.0945),
-            (8, "Panchpaoli Chowk", 21.1623, 79.1012),
-            (9, "Agrasen Chowk", 21.1534, 79.1023),
-            (10, "Dosar Vaishya Chowk", 21.1512, 79.0956),
-            (11, "Subhash Chowk", 21.1467, 79.1045),
-            (12, "Chhatrapati Nagar Square", 21.112467, 79.064213),
-            (13, "Pratap Nagar Square", 21.1189, 79.0567),
-            (14, "Mate Chowk", 21.1245, 79.0589),
-            (15, "Deonagar Square", 21.1167, 79.0712),
-            (16, "Khamla Square", 21.1134, 79.0689),
-            (17, "Ajni Chowk", 21.1256, 79.0834),
-            (18, "Medical Square", 21.1345, 79.0945),
-            (19, "Baidyanath Chowk", 21.1389, 79.0912),
-            (20, "Rambhag Road Intersection", 21.1412, 79.0889),
-            (21, "Manewada Square", 21.1045, 79.0923),
-            (22, "Omkar Nagar Square", 21.1012, 79.0856),
-            (23, "Shatabdi Square", 21.0967, 79.0812),
-            (24, "Besada Chowk", 21.0923, 79.0945),
-            (25, "Dighori Naka Square", 21.1123, 79.1345),
-            (26, "Kharbi Chowk", 21.1267, 79.1389),
-            (27, "Sakkardara Chowk", 21.1289, 79.1123),
-            (28, "Reshimbagh Square", 21.1323, 79.1056),
-            (29, "Krida Chowk", 21.1356, 79.1012),
-            (30, "Ashok Chowk", 21.1412, 79.1145),
-            (31, "Bhande Plot Square", 21.1378, 79.1234),
-            (32, "Garoba Maidan Chowk", 21.1456, 79.1256),
-            (33, "Telephone Exchange Square", 21.1489, 79.1189),
-            (34, "Central Avenue (CA) Road Chowk", 21.1467, 79.1089),
-            (35, "Law College Square", 21.1478, 79.0567),
-            (36, "Shankar Nagar Square", 21.1389, 79.0623),
-            (37, "Bhole Petrol Pump Chowk", 21.1434, 79.0689),
-            (38, "VIP Road Intersection", 21.1512, 79.0645),
-            (39, "Japanese Garden Square", 21.1634, 79.0678),
-            (40, "TVS Maruti Seva Chowk", 21.1589, 79.0745),
-            (41, "RBI Chowk", 21.1512, 79.0845),
-            (42, "Samvidhan Square (RBI Square)", 21.1498, 79.0834),
-            (43, "Zero Mile Square", 21.1478, 79.0845),
-            (44, "Manish Nagar Flyover Intersection", 21.0989, 79.0689),
-        ]
         junctions = [
             JunctionModel(id=j_id, name=j_name, latitude=j_lat, longitude=j_lon)
             for j_id, j_name, j_lat, j_lon in fallback_data
         ]
+    elif len(junctions) < 44:
+        existing_ids = {j.id for j in junctions}
+        for j_id, j_name, j_lat, j_lon in fallback_data:
+            if j_id not in existing_ids:
+                junctions.append(JunctionModel(id=j_id, name=j_name, latitude=j_lat, longitude=j_lon))
 
     points = []
     

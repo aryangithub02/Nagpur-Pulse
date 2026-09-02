@@ -64,6 +64,18 @@ class CanonicalWeatherState:
     provenance: Optional[DataProvenance] = None
 
     def to_dict(self) -> Dict[str, Any]:
+        # Classify Level according to 5-tier scale
+        if self.traffic_impact_score <= 20.0:
+            impact_level = "LOW"
+        elif self.traffic_impact_score <= 40.0:
+            impact_level = "MODERATE"
+        elif self.traffic_impact_score <= 60.0:
+            impact_level = "ELEVATED"
+        elif self.traffic_impact_score <= 80.0:
+            impact_level = "HIGH"
+        else:
+            impact_level = "SEVERE"
+
         return {
             "location": {
                 "name": self.location_name,
@@ -90,6 +102,7 @@ class CanonicalWeatherState:
             },
             "traffic_impact": {
                 "score": self.traffic_impact_score,
+                "level": impact_level,
                 "eta_multiplier": self.eta_multiplier,
                 "rain_intensity": self.rain_intensity,
             },

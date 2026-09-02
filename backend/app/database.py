@@ -41,6 +41,22 @@ class Base(DeclarativeBase):
 
 def ensure_db_schema():
     """Ensures database tables exist and performs automatic column migration for predictions table."""
+    try:
+        import app.models.junction
+        import app.models.observation
+        import app.models.prediction
+        import app.models.incident
+        import app.models.police_unit
+        import app.models.deployment
+        import app.models.recommendation
+        import app.models.audit_log
+        import app.models.user
+        import app.models.zone
+        import app.models.weather
+        import app.models.decision_evidence
+    except Exception as err:
+        logger.warning(f"Model import error during ensure_db_schema: {err}")
+
     Base.metadata.create_all(bind=engine)
     
     # Auto-add missing columns to existing predictions table

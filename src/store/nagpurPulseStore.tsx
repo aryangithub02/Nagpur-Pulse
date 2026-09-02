@@ -486,7 +486,7 @@ export const NagpurPulseStoreProvider: React.FC<{ children: React.ReactNode }> =
 
   const [apiSyncState, setApiSyncState] = useState<ApiSyncState>({
     isLiveApiConnected: true,
-    apiEndpoint: 'http://localhost:8000/api',
+    apiEndpoint: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`,
     lastSuccessfulSync: new Date().toISOString(),
     errorMessage: null,
     pingLatencyMs: 14,

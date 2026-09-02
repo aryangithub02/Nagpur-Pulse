@@ -76,6 +76,8 @@ default_origins = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://nagpur-pulse.vercel.app",
+    "https://nagpur-pulse-backend.onrender.com",
 ]
 for origin in default_origins:
     if origin not in parsed_origins:
@@ -84,16 +86,33 @@ for origin in default_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parsed_origins if "*" not in parsed_origins else ["*"],
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.vercel\.app)(:\d+)?",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|.*\.vercel\.app)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+def make_cors_response(request: Request, status_code: int, content: Any) -> JSONResponse:
+    """Helper ensuring CORS headers are present on exception responses."""
+    origin = request.headers.get("origin")
+    headers = {}
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Access-Control-Allow-Methods"] = "*"
+        headers["Access-Control-Allow-Headers"] = "*"
+    return JSONResponse(status_code=status_code, content=content, headers=headers)
+
 @app.on_event("startup")
 def startup_initialize():
     """Backend service startup initialization: Seed 5 zones & initial admin accounts."""
-    logger.info("Verifying operational zones & Argon2id hashed admin accounts...")
+    logger.info("Verifying database schema, operational zones & Argon2id hashed admin accounts...")
+    try:
+        from app.database import ensure_db_schema
+        ensure_db_schema()
+    except Exception as err:
+        logger.warning(f"Database schema verification warning: {err}")
+
     try:
         bootstrap_zones_and_admins()
     except Exception as err:
@@ -105,14 +124,16 @@ def startup_initialize():
 @app.exception_handler(UnitNotFoundException)
 @app.exception_handler(RecommendationNotFoundException)
 async def not_found_domain_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": str(exc)}
     )
 
 @app.exception_handler(UnitUnavailableException)
 async def unit_unavailable_exception_handler(request: Request, exc: UnitUnavailableException):
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": str(exc)}
     )
@@ -120,21 +141,24 @@ async def unit_unavailable_exception_handler(request: Request, exc: UnitUnavaila
 @app.exception_handler(RoutingUnavailableException)
 @app.exception_handler(DatabaseOperationException)
 async def service_error_domain_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": str(exc)}
     )
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=exc.status_code,
         content={"detail": exc.detail}
     )
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": "Request validation failed", "errors": exc.errors()}
     )
@@ -142,17 +166,19 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     logger.error(f"Database error on {request.method} {request.url.path}: {str(exc)}")
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Database service error encountered. Please try again."}
+        content={"detail": f"Database service error encountered: {str(exc)}"}
     )
 
 @app.exception_handler(Exception)
 async def uncaught_exception_handler(request: Request, exc: Exception):
     logger.error(f"Uncaught exception on {request.method} {request.url.path}: {str(exc)}", exc_info=True)
-    return JSONResponse(
+    return make_cors_response(
+        request,
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An internal server error occurred."}
+        content={"detail": f"An internal server error occurred: {str(exc)}"}
     )
 
 # Router Mounts
@@ -161,7 +187,7 @@ app.include_router(junctions_router)
 app.include_router(observations_router)
 app.include_router(predict_router)
 
-# Register Phase 4 Frontend API routers (/api/*)
+# Register Phase 4 Frontend API routers (/api/* and /api/v1/* aliases)
 app.include_router(api_locations_router)
 app.include_router(api_traffic_router)
 app.include_router(api_incidents_router)
@@ -176,6 +202,7 @@ app.include_router(api_weather_router)
 app.include_router(api_resource_allocation_router, prefix="/api/v1")
 app.include_router(api_fast_allocation_router, prefix="/api/v1")
 app.include_router(api_simulations_v1_router, prefix="/api/v1")
+app.include_router(api_decisions_router, prefix="/api")
 app.include_router(api_decisions_router, prefix="/api/v1")
 app.include_router(api_decision_review_router, prefix="/api/decision-review")
 app.include_router(api_decision_review_router, prefix="/api/v1/decision-review")
