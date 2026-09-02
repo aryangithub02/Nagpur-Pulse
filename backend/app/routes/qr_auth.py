@@ -194,6 +194,10 @@ def get_qr_session_status(session_id: str):
     )
 
 
+# Exclusive Primary Paired Phone Directory per Admin Account
+PAIRED_PRIMARY_PHONES: Dict[str, Dict[str, Any]] = {}
+
+
 @router.post("/verify-signature", summary="Step 3 & 4: User Device submits signature & Server verifies device allowance")
 def verify_device_signature(
     req: VerifySignatureRequest,
@@ -202,8 +206,8 @@ def verify_device_signature(
 ):
     """
     Verifies cryptographic signature.
-    Method A (First-time pairing): The first scan pairs & registers the phone key.
-    Subsequent: Verifies device matches registered device list.
+    First mobile phone to scan pairs and locks as the exclusive primary device.
+    Subsequent attempts from any other device are rejected unless reset.
     """
     ip_addr = request.client.host if request.client else "127.0.0.1"
     session = QR_SESSIONS.get(req.session_id)
@@ -233,7 +237,7 @@ def verify_device_signature(
             "message": "User not found.",
         }
 
-    # 2. Signature presence & validity check
+    # 2. Signature presence check
     if not req.signature or len(req.signature) < 6:
         session["status"] = "REJECTED"
         session["rejection_reason"] = "Cryptographic signature validation failed."
@@ -244,37 +248,59 @@ def verify_device_signature(
             "message": "Signature verification failed.",
         }
 
-    # 3. Method A: First-Time Pairing vs Registered Device Check
-    # If the user is requesting pairing or device is new & allowed:
     is_rogue = "ROGUE" in req.device_id.upper() or "UNAUTHORIZED" in req.device_id.upper()
-    user_devices = REGISTERED_ADMIN_DEVICES.get(req.username, [])
-    matching_device = next((d for d in user_devices if d["device_id"] == req.device_id and d.get("is_allowed", True)), None)
-
     if is_rogue:
-        # Explicit rogue device test rejection
         session["status"] = "REJECTED"
-        session["rejection_reason"] = f"Device '{req.device_id}' failed authorization policy."
+        session["rejection_reason"] = f"Device '{req.device_id}' failed authorization security check."
         return {
             "success": False,
             "status": "REJECTED",
             "decision": "NO",
             "device_allowed": False,
-            "message": f"Access Rejected: Unauthorized device {req.device_id}.",
+            "message": f"Access Rejected: Rogue / unauthorized device {req.device_id}.",
         }
 
-    # If first time pairing or new device registration:
-    if not matching_device or req.is_pairing_request:
-        # Method A: Register this phone as an authorized device for this admin!
-        new_device_entry = {
+    # 3. FIRST-DEVICE LOCKOUT / PAIRING LOGIC
+    paired_device = PAIRED_PRIMARY_PHONES.get(req.username)
+
+    if paired_device is None or req.is_pairing_request:
+        # FIRST PHONE TO SCAN: Lock & register this phone as the primary authorized device!
+        PAIRED_PRIMARY_PHONES[req.username] = {
             "device_id": req.device_id,
-            "device_name": req.device_name or "Officer Smartphone",
-            "public_key_fingerprint": f"SHA256:{hashlib.sha256(req.public_key.encode()).hexdigest()[:40]}",
+            "device_name": req.device_name or "Primary Mobile Device",
             "public_key": req.public_key,
-            "is_allowed": True,
-            "registered_at": datetime.utcnow().isoformat() + "Z",
+            "paired_at": datetime.utcnow().isoformat() + "Z",
         }
-        REGISTERED_ADMIN_DEVICES.setdefault(req.username, []).append(new_device_entry)
-        logger.info(f"Method A Pairing: Successfully registered device {req.device_id} for admin {req.username}")
+        logger.info(f"First-Time Pairing: Locked admin '{req.username}' exclusively to device {req.device_id}")
+    else:
+        # SUBSEQUENT SCAN: Must match the paired primary phone
+        if paired_device["device_id"] != req.device_id:
+            session["status"] = "REJECTED"
+            session["rejection_reason"] = f"Access Denied: Admin account is locked to paired device '{paired_device['device_name']}' ({paired_device['device_id']}). Phone B is not authorized."
+            session["device_info"] = {
+                "device_id": req.device_id,
+                "allowed": False,
+            }
+            create_audit_entry(
+                db,
+                user_id=user.id,
+                username=user.username,
+                role=user.role,
+                zone_code=user.zone_code or "ALL",
+                action="QR_UNPAIRED_PHONE_REJECTED",
+                resource_type="DEVICE_SECURITY",
+                resource_id=req.device_id,
+                details=f"Unpaired device '{req.device_id}' attempted login for admin '{user.username}' (locked to '{paired_device['device_id']}').",
+                ip_address=ip_addr,
+                success=False,
+            )
+            return {
+                "success": False,
+                "status": "REJECTED",
+                "decision": "NO",
+                "device_allowed": False,
+                "message": f"Access Denied: Account is locked to paired phone {paired_device['device_id']}.",
+            }
 
     # Decision: YES -> Access Granted!
     access_token = create_access_token(user)
@@ -299,7 +325,7 @@ def verify_device_signature(
         action="QR_DEVICE_AUTH_SUCCESS",
         resource_type="DEVICE_SECURITY",
         resource_id=req.device_id,
-        details=f"Admin {user.username} authenticated via Hardware Device '{req.device_name}' ({req.device_id}) using asymmetric signature verification.",
+        details=f"Admin {user.username} unlocked laptop session via Paired Device '{req.device_name}' ({req.device_id}).",
         ip_address=ip_addr,
         success=True,
     )
@@ -311,16 +337,44 @@ def verify_device_signature(
         "device_allowed": True,
         "access_token": access_token,
         "user": user_dict,
-        "message": "Signature verified & Device allowed. Access Granted.",
+        "message": "Signature verified & Device paired/allowed. Access Granted.",
+    }
+
+
+@router.post("/reset-paired-device/{username}", summary="Reset paired device so a new phone can pair")
+def reset_paired_device(username: str):
+    """Resets the paired primary phone for the admin account, allowing the next phone scan to pair."""
+    if username in PAIRED_PRIMARY_PHONES:
+        removed = PAIRED_PRIMARY_PHONES.pop(username)
+        logger.info(f"Reset pairing for admin {username} (previously {removed.get('device_id')})")
+        return {
+            "success": True,
+            "message": f"Device unlinked. The next phone to scan the QR code will become the new authorized device.",
+            "unlinked_device": removed,
+        }
+    return {
+        "success": True,
+        "message": f"No phone currently locked to {username}. Ready for first scan.",
+    }
+
+
+@router.get("/paired-device/{username}", summary="Get current paired phone info")
+def get_paired_device(username: str):
+    """Returns the currently paired primary device info for the admin."""
+    paired = PAIRED_PRIMARY_PHONES.get(username)
+    return {
+        "username": username,
+        "is_paired": paired is not None,
+        "paired_device": paired,
     }
 
 
 @router.get("/devices/{username}", summary="List allowed devices for an admin account")
 def list_admin_devices(username: str):
     """Returns the registered allowed security keys/devices for the specified admin."""
-    devices = REGISTERED_ADMIN_DEVICES.get(username, [])
+    paired = PAIRED_PRIMARY_PHONES.get(username)
     return {
         "username": username,
-        "count": len(devices),
-        "devices": devices,
+        "is_paired": paired is not None,
+        "paired_device": paired,
     }

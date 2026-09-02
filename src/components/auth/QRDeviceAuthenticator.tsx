@@ -23,6 +23,8 @@ import {
   generateQRSession,
   checkQRSessionStatus,
   submitDeviceSignature,
+  resetPairedDevice,
+  getPairedDevice,
   QRSessionData,
   QRSessionStatus,
 } from '../../services/api/qrAuth';
@@ -34,15 +36,36 @@ export const QRDeviceAuthenticator: React.FC<{
   const { loginWithUser, setActiveZone } = useAuth();
 
   const [session, setSession] = useState<QRSessionData | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(120);
+  const [timeLeft, setTimeLeft] = useState<number>(180);
   const [sessionStatus, setSessionStatus] = useState<QRSessionStatus['status']>('PENDING');
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [pairedInfo, setPairedInfo] = useState<{ is_paired: boolean; paired_device?: any }>({ is_paired: false });
+  const [resetFeedback, setResetFeedback] = useState<string | null>(null);
 
   // Device Simulator state
   const [simSelectedAdmin, setSimSelectedAdmin] = useState<string>('admin');
   const [simDeviceType, setSimDeviceType] = useState<'ALLOWED' | 'UNAUTHORIZED'>('ALLOWED');
   const [simAlgorithm, setSimAlgorithm] = useState<string>('ECDSA_P256');
+
+  // Fetch pairing info
+  const loadPairingInfo = async (username: string) => {
+    const info = await getPairedDevice(username);
+    setPairedInfo(info);
+  };
+
+  useEffect(() => {
+    loadPairingInfo(simSelectedAdmin);
+  }, [simSelectedAdmin]);
+
+  const handleResetPairing = async () => {
+    setResetFeedback('Resetting device lock...');
+    const res = await resetPairedDevice(simSelectedAdmin);
+    setResetFeedback(res.message);
+    setPairedInfo({ is_paired: false });
+    setTimeout(() => setResetFeedback(null), 4000);
+    initSession();
+  };
 
   // Initialize QR session on mount
   const initSession = async () => {
@@ -52,7 +75,7 @@ export const QRDeviceAuthenticator: React.FC<{
     const newSession = await generateQRSession();
     if (newSession) {
       setSession(newSession);
-      setTimeLeft(120);
+      setTimeLeft(180);
     }
   };
 
@@ -310,8 +333,40 @@ export const QRDeviceAuthenticator: React.FC<{
             )}
           </div>
 
+          {/* Method A Pairing State Indicator */}
+          <div className="w-full mt-2 p-2.5 rounded-xl border text-[11px] font-mono text-left space-y-1.5 transition-all bg-slate-900/90 border-slate-800">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 font-bold text-[10px]">PAIRING LOCK STATUS:</span>
+              <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold border ${
+                pairedInfo.is_paired
+                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse'
+              }`}>
+                {pairedInfo.is_paired ? 'LOCKED TO PHONE' : 'OPEN TO FIRST SCAN'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-300">
+              {pairedInfo.is_paired
+                ? `Paired to: ${pairedInfo.paired_device?.device_name || pairedInfo.paired_device?.device_id || 'Officer Phone'}. Only this phone can unlock.`
+                : 'First phone to scan this QR code will become the permanently authorized device.'}
+            </p>
+            {pairedInfo.is_paired && (
+              <button
+                type="button"
+                onClick={handleResetPairing}
+                className="w-full py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[10px] font-bold rounded-lg border border-rose-500/30 flex items-center justify-center gap-1 transition"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Reset / Unlink Paired Phone</span>
+              </button>
+            )}
+            {resetFeedback && (
+              <p className="text-[10px] text-cyan-300 text-center font-bold">{resetFeedback}</p>
+            )}
+          </div>
+
           {/* Nonce Challenge Preview & TTL Bar */}
-          <div className="w-full mt-3 font-mono text-left">
+          <div className="w-full mt-2 font-mono text-left">
             <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 text-[11px] space-y-1">
               <div className="flex justify-between text-slate-400">
                 <span>Session ID:</span>
@@ -332,7 +387,7 @@ export const QRDeviceAuthenticator: React.FC<{
             {/* Refresh Session Action */}
             <button
               onClick={initSession}
-              className="mt-2.5 w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              className="mt-2 w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Generate New Challenge</span>
@@ -346,7 +401,7 @@ export const QRDeviceAuthenticator: React.FC<{
             <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-4">
               <div className="flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-bold text-sm text-slate-100">User's Device Authenticator Terminal</h3>
+                <h3 className="font-bold text-sm text-slate-100">Officer Device Authenticator Terminal</h3>
               </div>
               <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
                 Hardware Enclave
